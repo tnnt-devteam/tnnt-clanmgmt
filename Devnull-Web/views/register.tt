@@ -1,0 +1,23 @@
+<h1>Devnull New User Registration</h1>
+
+[% IF errmsg %]
+<p class="errmsg">[% errmsg %]</p>
+[% END %]
+
+<form class="newuser" method="post">
+  <div>
+    <label for="reg_name">Username</label>
+    <input type="text" name="reg_name">
+  </div>
+  <div>
+    <label for="reg_pwd1">Password</label>
+    <input type="password" name="reg_pwd1">
+  </div>
+  <div>
+    <label>Password again</label>
+    <input type="password" name="reg_pwd2">
+  </div>
+  <div class="buttons">
+    <button name="submit" value="submit">Create</button>
+  </div>
+</form>

@@ -1,0 +1,25 @@
+
+/* default css */
+
+P.errmsg {
+  font-size: 150%;
+  color : red;
+}
+
+FORM.newuser LABEL {
+  display: inline-block;
+  width: 8em;
+}
+
+FORM.newuser DIV.buttons {
+  margin-top: 1em;
+}
+
+FORM.login LABEL {
+  display: inline-block;
+  width: 8em;
+}
+
+FORM.login DIV.buttons {
+  margin-top: 1em;
+}

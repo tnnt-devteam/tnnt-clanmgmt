@@ -1,0 +1,19 @@
+<h1>Devnull Log In</h1>
+
+[% IF errmsg %]
+<p class="errmsg">[% errmsg %]</p>
+[% END %]
+
+<form class="login" method="post">
+  <div>
+    <label for="reg_name">Username</label>
+    <input type="text" name="reg_name">
+  </div>
+  <div>
+    <label for="reg_pwd1">Password</label>
+    <input type="password" name="reg_pwd1">
+  </div>
+  <div class="buttons">
+    <button name="submit" value="submit">Log In</button>
+  </div>
+</form>
