@@ -1,0 +1,13 @@
+<h1>Player page for: [% logname %]</h1>
+
+<ul>
+[% IF clan %]
+<li>You are
+[% IF admin %]admin[% END %]
+on clan <b>[% clan %]</b> [ <a href="leave_clan">Leave</a> ] </li>
+[% ELSE %]
+<li>You are not member of any clan</li>
+<li><a href="create_clan">Start a new clan</a></li>
+[% END %]
+<li><a href="/">Go Back</a></li>
+</ul>

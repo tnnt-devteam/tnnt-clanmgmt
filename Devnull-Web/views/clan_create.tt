@@ -1,0 +1,12 @@
+<h1>Devnull / Start a new clan</h1>
+
+[% IF errmsg %]
+<p class="errmsg">[% errmsg %]</p>
+[% END %]
+
+<form method="post">
+<label>Clan name: <input name="clan_name"></label>
+<button name="clan_create" value="clan_create">Create</button>
+</form>
+
+<p><a href="player">Go Back</a></p>

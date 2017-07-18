@@ -132,5 +132,201 @@ post '/register' => sub {
   return template 'register', $response;
 };
 
+#=============================================================================
+#=== player admin page =======================================================
+#=============================================================================
+
+get '/player' => sub {
+
+  #--- this is only for authenticated users, boot anyone who is not logged in
+
+  my $name = session('logname');
+  if(!$name) { return "Unauthenticated!"; }
+
+  #--- get team information for the user
+
+  my ($clan_name, $clan_admin);
+  try {
+    my $sth = database->prepare(
+      'SELECT c.name, p.clan_admin FROM players p LEFT JOIN clans c '
+      . 'USING ( clans_i ) WHERE p.name = ?'
+    );
+    if(!ref($sth)) { die "Failed to get database handle\n"; }
+    my $r = $sth->execute($name);
+    if(!$r) { die "Failed to query database\n"; }
+    ($clan_name, $clan_admin) = $sth->fetchrow_array();
+  } catch {
+    return "Database error ($@)";
+  }
+
+  template 'player', {
+    title => "Devnull Player $name",
+    clan => $clan_name,
+    admin => $clan_admin,
+    logname => $name
+  };
+};
+
+
+#=============================================================================
+#=== player clan leave =======================================================
+#=============================================================================
+
+get '/leave_clan' => sub {
+
+  #--- this is only for authenticated users, boot anyone who is not logged in
+
+  my $name = session('logname');
+  if(!$name) { return "Unauthenticated!"; }
+
+  #--- start transaction
+
+  my $r = database->begin_work();
+  if(!$r) {
+    return "Failed to start database transaction";
+  }
+
+  try {
+
+  #--- get clan id
+
+    my $sth = database->prepare(
+      'SELECT clans_i FROM players WHERE name = ?'
+    );
+    die "Failed to get query handle\n" if !ref($sth);
+    my $r = $sth->execute($name);
+    die "Failed to query database\n" if !$r;
+    my ($clan_id) = $sth->fetchrow_array();
+    die "Failed to get clan id for player '$name'\n" if !$clan_id;
+
+  #--- leave clan
+
+    $r = database->do(
+      'UPDATE players SET clans_i = NULL, clan_admin = 0 WHERE name = ?',
+      undef, $name
+    );
+    if($r != 1) { die "Failed to leave clan\n"; }
+
+  #--- delete the clan if no more users remain
+
+    $sth = database->prepare(
+      'SELECT count(*) FROM players p LEFT JOIN clans c USING (clans_i) '
+      . 'WHERE c.name = ?'
+    );
+    $r = $sth->execute($clan_id);
+    die "Failed to query database\n" if !$r;
+    my ($remaining_cnt) = $sth->fetchrow_array();
+    if($remaining_cnt == 0) {
+      $r = database->do(
+        'DELETE FROM clans WHERE clans_i = ?',
+        undef, $clan_id
+      );
+      die "Failed to remove empty clan" if !$r;
+    }
+
+  #--- abort transaction
+
+  } catch {
+    chomp($@);
+    database->rollback();
+    return "Could not leave the clan ($@)";
+  }
+
+  #--- commit transaction
+
+  database->commit();
+  redirect '/player';
+
+};
+
+#=============================================================================
+#=== player clan create ======================================================
+#=============================================================================
+
+get '/create_clan' => sub {
+
+  #--- this is only for authenticated users, boot anyone who is not logged in
+
+  my $name = session('logname');
+  if(!$name) { return "Unauthenticated!"; }
+
+  #--- get the clan name
+
+  template 'clan_create', { title => 'Devnull / Start a new clan' };
+};
+
+post '/create_clan' => sub {
+
+  #--- this is only for authenticated users, boot anyone who is not logged in
+
+  my $name = session('logname');
+  if(!$name) { return "Unauthenticated!"; }
+
+  #--- get clan name, make sure it is sensible (FIXME: more checks needed)
+
+  my $clan_name = body_parameters->get('clan_name');
+  if(!$clan_name) {
+    return template 'clan_create', {
+      title => 'Devnull / Start a new clan',
+      errmsg => 'Please fill in clan name'
+    };
+  }
+
+  #--- start a transaction
+
+  my $r = database->begin_work;
+  if(!$r) { return "Failed to start database transaction"; }
+
+  #--- transaction body
+
+  try {
+
+    # create new clan
+    $r = database->do(
+      'INSERT INTO clans ( name ) VALUES ( ? )',
+      undef, $clan_name
+    );
+    if(!$r) {
+      if(database->errstr() =~ /^UNIQUE constraint failed/) {
+        die "The clan '$clan_name' already exists, please choose different name\n";
+      } else {
+        die sprintf("Failed to create a new clan (%s)\n", database->errstr());
+      }
+    }
+
+    # get the clan's id
+    my $sth = database->prepare(
+      'SELECT clans_i FROM clans WHERE name = ?'
+    );
+    if(!ref($sth)) { die "Failed to get db query handle\n"; }
+    $r = $sth->execute($clan_name);
+    if(!$r) { die "Failed to query database\n"; }
+    my ($clans_i) = $sth->fetchrow_array();
+    if(!$clans_i) { die "Failed to get new clan id\n"; }
+
+    # make the player member and admin
+    $r = database->do(
+      'UPDATE players SET clan_admin = 1, clans_i = ? WHERE name = ?',
+      undef, $clans_i, $name
+    );
+    if(!$r) { die "Failed to make user $name a clan admin\n"; }
+
+  } catch {
+
+    chomp($@);
+    database->rollback;
+    return template 'clan_create', {
+      title => 'Devnull / Start a new clan',
+      errmsg => $@
+    };
+
+  }
+
+  #--- finish the transcation
+
+  database->commit;
+  redirect '/player';
+};
+
 
 true;

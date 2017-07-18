@@ -2,7 +2,7 @@
 
 </p>
 [% IF logname %]
-Logged in as: <b>[% logname %]</b>
+Logged in as: <b><a href="player">[% logname %]</a></b>
 [% ELSE %]
 Not logged in
 [% END %]
@@ -11,6 +11,7 @@ Not logged in
 
 <ul>
 [% IF logname %]
+<li><a href="player">Go to your settings</a></li>
 <li><a href="logout">Log out</a></li>
 [% ELSE %]
 <li><a href="register">Register new user</a></li>
