@@ -11,7 +11,7 @@ package Devnull::Web;
 use Dancer2;
 use Dancer2::Plugin::Database;
 use Dancer2::Plugin::Passphrase;
-use Try::Tiny;
+use Syntax::Keyword::Try;
 
 our $VERSION = '0.1';
 
@@ -58,8 +58,8 @@ any '/login' => sub {
       }
     }
   } catch {
-    chomp($data->{'errmsg'} = $_);
-  };
+    chomp($data->{'errmsg'} = $@);
+  }
 
   template 'login', $data;
 };
@@ -126,8 +126,8 @@ post '/register' => sub {
     }
 
   } catch {
-    chomp($response->{'errmsg'} = $_);
-  };
+    chomp($response->{'errmsg'} = $@);
+  }
 
   return template 'register', $response;
 };

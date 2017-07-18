@@ -25,6 +25,7 @@ Upgrade and configure CPAN.pm to bootstrap local::lib
 
 Install required Perl modules
 
+    perl -MCPAN -e 'install Syntax::Keyword::Try'
     perl -MCPAN -e 'install App::Cmd::Setup'
     perl -MCPAN -e 'install Plack::Middleware::Deflater'
     perl -MCPAN -e 'install DBD::SQLite'
