@@ -188,6 +188,9 @@ sub plr_leave_clan
 
   #--- start transaction
 
+  my $r = database->begin_work();
+  if(!$r) { return "Failed to start transaction"; }
+
   try {
 
   #--- get clan id
@@ -199,7 +202,7 @@ sub plr_leave_clan
 
   #--- leave clan
 
-    my $r = database->do(
+    $r = database->do(
       'UPDATE players SET clans_i = NULL, clan_admin = 0 WHERE name = ?',
       undef, $name
     );
@@ -208,8 +211,7 @@ sub plr_leave_clan
   #--- delete the clan if no more users remain
 
     my $sth = database->prepare(
-      'SELECT count(*) FROM players p LEFT JOIN clans c USING (clans_i) '
-      . 'WHERE c.name = ?'
+      'SELECT count(*) FROM players WHERE clans_i = ?'
     );
     $r = $sth->execute($clan_id);
     die "Failed to query database\n" if !$r;
@@ -219,7 +221,7 @@ sub plr_leave_clan
         'DELETE FROM clans WHERE clans_i = ?',
         undef, $clan_id
       );
-      die "Failed to remove empty clan" if !$r;
+      die "Failed to remove empty clan\n" if !$r;
     }
 
   } catch {
