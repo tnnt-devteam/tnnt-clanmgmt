@@ -92,7 +92,7 @@ sub plr_info
 
   my $sth = database->prepare(
     'SELECT c.name AS clan_name, p.clan_admin AS clan_admin, '
-    . 'p.clans_i AS clan_id '
+    . 'p.clans_i AS clan_id, p.players_i '
     . 'FROM players p LEFT JOIN clans c '
     . 'USING ( clans_i ) WHERE p.name = ?'
   );
@@ -208,6 +208,15 @@ sub plr_leave_clan
     );
     if($r != 1) { die "Failed to leave clan\n"; }
 
+  #--- drop all your invitations
+
+    $r = database->do(
+      'DELETE FROM invites WHERE invitor = ?', undef, $plr->{'players_i'}
+    );
+    if(!$r) {
+      die sprintf("Failed to delete invitations (%s)\n", $r);
+    }
+
   #--- delete the clan if no more users remain
 
     my $sth = database->prepare(
@@ -238,6 +247,319 @@ sub plr_leave_clan
 
 
 #=============================================================================
+# Return players based on partial match anchored at start and optionally
+# excluding players from specified clan.
+#=============================================================================
+
+sub plr_search
+{
+  #--- arguments
+
+  my (
+    $search,            # search string
+    $exclude_clan_id    # exclude players with clan_id
+  ) = @_;
+
+  #--- query database
+
+  my @args = ( "$search%" );
+  my $qry =
+    'SELECT p.name AS name, c.name AS clan, players_i, clans_i, clan_admin '
+    . 'FROM players p LEFT JOIN clans c USING (clans_i)'
+    . q{ WHERE p.name LIKE ?};
+  if($exclude_clan_id) {
+    $qry .= ' AND ( p.clans_i <> ? OR p.clans_i IS NULL )';
+    push(@args, $exclude_clan_id);
+  }
+  my $sth = database->prepare($qry);
+  if(!ref($sth)) { return "Failed to get database handle"; }
+  my $r = $sth->execute(@args);
+  if(!$r) {
+    return sprintf "Failed to query database (%s)", $sth->errstr();
+  }
+  my $result = $sth->fetchall_hashref('name');
+  return $result;
+}
+
+
+#=============================================================================
+# Invite a player to a clan.
+#=============================================================================
+
+sub plr_invite
+{
+  #--- arguments
+
+  my (
+    $name,        # player doing the inviting
+    $invitee      # player being invited
+  ) = @_;
+
+  #--- get information about players
+
+  my $plr_invitor = plr_info($name);
+  if(!ref($plr_invitor)) { return $plr_invitor; }
+  my $plr_invitee = plr_info($invitee);
+  if(!ref($plr_invitee)) { return $plr_invitee; }
+
+
+  if(!$plr_invitor->{'clan_admin'}) {
+    return "Only clan admins can invite players";
+  }
+  if($plr_invitor->{'clan_id'} == $plr_invitee->{'clan_id'}) {
+    return "The invited player already is member of the clan";
+  };
+
+  #--- redundant invitation
+
+  my $sth = database->prepare(
+    'SELECT count(*) FROM invites WHERE invitor = ? AND invitee = ?'
+  );
+  if(!ref($sth)) { return "Failed to get database handle"; }
+  my $r = $sth->execute(
+    $plr_invitor->{'players_i'}, $plr_invitee->{'players_i'}
+  );
+  if(!$r) { return "Failed to query database"; }
+  my ($cnt) = $sth->fetchrow_array();
+  if($cnt == 1) { return "The player already has invitation waiting"; }
+
+  #--- create new invitation
+
+  $r = database->do(
+    'INSERT INTO invites ( invitor, invitee ) VALUES ( ?, ? )', undef,
+    $plr_invitor->{'players_i'}, $plr_invitee->{'players_i'}
+  );
+  if(!$r) { return "Failed to create an invitation"; }
+
+  return [];
+}
+
+
+#=============================================================================
+# For player supplied as the argument, return two lists references from
+# hashref with two keys.  The 'invites' key references list of pending
+# invites for the player as [ <invitor>, <clan> ]; the 'invitees' key
+# references list of invitation the player has issued as [ <invitee> ].
+#=============================================================================
+
+sub plr_get_invitations
+{
+  #--- arguments
+
+  my ($name) = @_;
+
+  #--- get player info
+
+  my $plr = plr_info($name);
+  if(!ref($plr)) { return "Could not get player info ($plr)"; }
+
+  #--- list of invites the player has issued
+
+  my @my_invitees;
+  my $sth = database->prepare(
+    'SELECT name '
+    . 'FROM invites LEFT JOIN players ON players_i = invitee '
+    . 'WHERE invitor = ?'
+  );
+  if(!ref($sth)) { return "Failed to get database handle"; }
+  my $r = $sth->execute($plr->{'players_i'});
+  while(my ($invitee) = $sth->fetchrow_array()) {
+    push(@my_invitees, $invitee);
+  }
+
+  #--- list of invites waiting for the player
+
+  my @my_invites;
+  $sth = database->prepare(
+    'SELECT p.name AS player, c.name AS clan '
+    . 'FROM invites i LEFT JOIN players p ON players_i = invitor '
+    . 'LEFT JOIN clans c USING ( clans_i ) '
+    . 'WHERE invitee = ?'
+  );
+  if(!ref($sth)) { return "Failed to get database handle"; }
+  $r = $sth->execute($plr->{'players_i'});
+  while(my @invite = $sth->fetchrow_array()) {
+    push(@my_invites, \@invite);
+  }
+
+  return { invites => \@my_invites, invitees => \@my_invitees };
+}
+
+
+#=============================================================================
+# Revoke (= remove) invitation(s) player has given to another player. If the
+# invitee player is not specified, all invitations by the player are revoked.
+# On error, error message is returned; on success hashref is returned with
+# key 'deleted' which gives number of entries that were actually deleted.
+#=============================================================================
+
+sub plr_revoke_invitations
+{
+  #--- arguments
+
+  my ($name, $invitee) = @_;
+
+  #--- get info on both players
+
+  my $plr_info = plr_info($name);
+  if(!ref($plr_info)) { return $plr_info; }
+  my $invitee_info;
+  if($invitee) {
+    $invitee_info = plr_info($invitee);
+    if(!ref($invitee_info)) { return $invitee_info; }
+  }
+
+  #--- delete the invites
+
+  my @args = $plr_info->{'players_i'};
+  my $qry = 'DELETE FROM invites WHERE invitor = ?';
+  if($invitee) {
+    $qry .= ' AND invitee = ?';
+    push(@args, $invitee_info->{'players_i'});
+  }
+  my $r = database->do($qry, undef, @args);
+  if(!$r) {
+    return
+      sprintf "Failed to delete the invitation() (%s)", database->errstr();
+  }
+
+  #--- finish successfully
+
+  return { deleted => $r };
+}
+
+
+#=============================================================================
+# Function declines invitation the player has pending from another. Only the
+# matching invitation is removed. Invitations from the other players for the
+# same clan will not be deleted. If invitor is omitted, all pending
+# invitations are declined.
+#=============================================================================
+
+sub plr_decline_invitation
+{
+  #--- arguments
+
+  my ($name, $invitor) = @_;
+
+  #--- get info on both players
+
+  my $plr_info = plr_info($name);
+  if(!ref($plr_info)) { return $plr_info; }
+  my $invitor_info;
+  if($invitor) {
+    $invitor_info = plr_info($invitor);
+    if(!ref($invitor_info)) { return $invitor_info; }
+  }
+
+  #--- delete the invite
+
+  my @args = ( $plr_info->{'players_i'} );
+  my $qry = 'DELETE FROM invites WHERE invitee = ?';
+  if($invitor) {
+    $qry .= ' AND invitor = ?';
+    push(@args, $invitor_info->{'players_i'});
+  }
+  my $r = database->do($qry, undef, @args);
+  if(!$r) {
+    return
+      sprintf "Failed to delete the invitation(s) (%s)", database->errstr();
+  }
+
+  #--- finish successfully
+
+  return { deleted => $r };
+}
+
+
+#=============================================================================
+# Function that accepts pending invitation from an invitor. This function
+# also drops all pending invitiation for the same clan as the invitor's clan.
+#=============================================================================
+
+sub plr_accept_invitation
+{
+  #--- arguments
+
+  my ($name, $invitor) = @_;
+
+  #--- get info on both players
+
+  my $plr_info = plr_info($name);
+  if(!ref($plr_info)) { return $plr_info; }
+  my $invitor_info;
+  if($invitor) {
+    $invitor_info = plr_info($invitor);
+    if(!ref($invitor_info)) { return $invitor_info; }
+  }
+
+  #--- get invitations list
+
+  my $invitations = plr_get_invitations($name);
+
+  #--- begin transaction
+
+  my $r = database->begin_work();
+  if(!$r) { return "Could not start database transaction"; }
+
+  try {
+
+  #--- update player record to include clan id
+
+    my $r = database->do(
+      'UPDATE players SET clans_i = ? WHERE players_i = ?', undef,
+      $invitor_info->{'clan_id'}, $plr_info->{'players_i'}
+    );
+    if(!$r) { die "Failed to update database ($r)\n"; }
+
+  #--- find all invitations for the same clan
+
+    my $sth = database->prepare(
+      'SELECT invitor, invitee ' .
+      'FROM invites ' .
+      'LEFT JOIN players ON invitor = players_i ' .
+      'LEFT JOIN clans USING (clans_i) ' .
+      'WHERE invitee = ? AND clans_i = ?'
+    );
+    if(!ref($sth)) {
+      die sprintf("Failed to get query handle (%s)\n", database->errstr());
+    }
+    $r = $sth->execute($plr_info->{'players_i'},$invitor_info->{'clan_id'});
+    if(!$r) { die sprint("Failed to query database (%s)\n", $sth->errstr()); }
+    my $invites = $sth->fetchall_arrayref();
+    if(!$invites) {
+      die sprintf "Failed to retrieve database query (%s)\n", $sth->errstr();
+    }
+
+  #--- delete all invitations matched in previous step
+
+    for my $row (@$invites) {
+      $r = database->do(
+        'DELETE FROM invites WHERE invitor = ? AND invitee = ?', undef,
+        @$row
+      );
+      if(!$r) {
+        die sprintf("Failed to delete invitation (%s)\n", database->errstr());
+      }
+    }
+
+  #--- abort transaction on error
+
+  } catch {
+    chomp($@);
+    database->rollback();
+    return "Could not accept clan invitation ($@)";
+  }
+
+  #--- commit transaction
+
+  database->commit();
+  return [];
+}
+
+
+
+#=============================================================================
 #==================   _  =====================================================
 #===  _ __ ___  _   _| |_ ___  ___   =========================================
 #=== | '__/ _ \| | | | __/ _ \/ __|  =========================================
@@ -245,6 +567,26 @@ sub plr_leave_clan
 #=== |_|  \___/ \__,_|\__\___||___/  =========================================
 #===                                ==========================================
 #=============================================================================
+
+# following URLs are implemented:
+#
+# GET  /                  ... front page
+# GET  /logout            ... log out
+# GET  /login             ... display log in page
+# POST /login             ... log in
+# GET  /register          ... display new player registration page
+# POST /register          ... perform new player registration
+# GET  /player            ... player personal administration page
+# GET  /leave_clan        ... leave current clan
+# any  /start_clan        ... starts new clan with the player as admin
+# any  /invite            ... display player invitation page
+# GET  /invite/<invitee>  ... invite a player to a clan
+# GET  /revoke/<invitee>  ... revoke an existing invitation
+# GET  /revoke            ... revoke all issued invitations
+# GET  /decline/<invitor> ... decline a pending invitation
+# GET  /decline           ... decline all pending invitations
+# GET  /accept/<invitor>  ... accept a pending invitation
+
 
 #=============================================================================
 #=== front page ==============================================================
@@ -363,10 +705,17 @@ get '/player' => sub {
     return $plr;
   }
 
+  #--- get invitation info for the user
+
+  my $invinfo = plr_get_invitations($name);
+
+  #--- serve the page
+
   template 'player', {
     title => "Devnull Player $name",
     clan => $plr->{'clan_name'},
     admin => $plr->{'clan_admin'},
+    invinfo => $invinfo,
     logname => $name
   };
 };
@@ -436,6 +785,171 @@ any '/create_clan' => sub {
     redirect '/player';
   }
 
+};
+
+
+#=============================================================================
+#=== invite ==================================================================
+#=============================================================================
+
+any '/invite' => sub {
+
+  my $data = {
+    title => 'Devnull / Invite a player'
+  };
+
+  #--- only for logged in users
+
+  my $name = session('logname');
+  if(!$name) { return "Unauthenticated!"; }
+
+  #--- only for clan admins
+
+  my $plr = plr_info($name);
+  if(!ref($plr)) { return "Failed to get player info"; }
+  if(!$plr->{'clan_admin'}) { return "Only clan admins can invite players"; }
+
+  #--- process POST data
+
+  if(request->is_post) {
+    my $invite_search = body_parameters->get('invite_name');
+    my $plrlist = plr_search($invite_search, $plr->{'clan_id'});
+    if(!ref($plrlist)) {
+      return "Couldn't get list of players ($plrlist)";
+    }
+    $data->{'plrlist'} = [ sort keys %$plrlist ];
+  }
+
+  #--- serve a form
+
+  template 'invite', $data;
+
+};
+
+get '/invite/:invitee' => sub {
+
+  my $data = {
+    title => 'Devnull / Invite a player'
+  };
+
+  #--- only for logged in users
+
+  my $name = session('logname');
+  if(!$name) { return "Unauthenticated!"; }
+
+  #--- only for clan admins
+
+  my $plr = plr_info($name);
+  if(!ref($plr)) { return "Failed to get player info"; }
+  if(!$plr->{'clan_admin'}) { return "Only clan admins can invite players"; }
+
+  #--- create invitiation
+
+  my $invitee = route_parameters->get('invitee');
+  my $r = plr_invite($name, $invitee);
+  if(!ref($r)) {
+    return $r;
+  } else {
+    redirect '/player';
+  }
+};
+
+
+#=============================================================================
+#=== revoke invitations ======================================================
+#=============================================================================
+
+get '/revoke/:player' => sub {
+
+  #--- only for logged in users
+
+  my $name = session('logname');
+  if(!$name) { return "Unauthenticated!"; }
+
+  #--- perform revocation
+
+  my $invitee = route_parameters->get('player');
+  my $r = plr_revoke_invitations($name, $invitee);
+  if(!ref($r)) { return $r; }
+
+  redirect '/player';
+
+};
+
+get '/revoke' => sub {
+
+  #--- only for logged in users
+
+  my $name = session('logname');
+  if(!$name) { return "Unauthenticated!"; }
+
+  #--- perform revocation
+
+  my $r = plr_revoke_invitations($name);
+  if(!ref($r)) { return $r; }
+
+  redirect '/player';
+
+};
+
+
+#=============================================================================
+#=== decline invitations =====================================================
+#=============================================================================
+
+get '/decline/:player' => sub {
+
+  #--- only for logged in users
+
+  my $name = session('logname');
+  if(!$name) { return "Unauthenticated!"; }
+
+  #--- perform decline
+
+  my $invitor = route_parameters->get('player');
+  my $r = plr_decline_invitation($name, $invitor);
+  if(!ref($r)) { return $r; }
+
+  redirect '/player';
+
+};
+
+get '/decline' => sub {
+
+  #--- only for logged in users
+
+  my $name = session('logname');
+  if(!$name) { return "Unauthenticated!"; }
+
+  #--- perform decline
+
+  my $invitor = route_parameters->get('player');
+  my $r = plr_decline_invitation($name);
+  if(!ref($r)) { return $r; }
+
+  redirect '/player';
+
+};
+
+
+#=============================================================================
+#=== accept invitation =======================================================
+#=============================================================================
+
+get '/accept/:player' => sub {
+
+  #--- only for logged in users
+
+  my $name = session('logname');
+  if(!$name) { return "Unauthenticated!"; }
+
+  #--- accept invitation
+
+  my $invitor = route_parameters->get('player');
+  my $r = plr_accept_invitation($name, $invitor);
+  if(!ref($r)) { return $r; }
+
+  redirect '/player';
 };
 
 

@@ -16,3 +16,11 @@ CREATE TABLE players (
   clan_admin INT NOT NULL DEFAULT 0,
   FOREIGN KEY (clans_i) REFERENCES clans(clans_i)
 );
+
+CREATE TABLE invites (
+  invitor INT NOT NULL,
+  invitee INT NOT NULL,
+  creat_when INT DEFAULT current_timestamp,
+  FOREIGN KEY (invitor) REFERENCES players(players_i) ON DELETE CASCADE,
+  FOREIGN KEY (invitee) REFERENCES players(players_i) ON DELETE CASCADE
+);

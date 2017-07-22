@@ -1,0 +1,30 @@
+<h1>Devnull / Invite a player</h1>
+
+[% IF errmsg %]
+<p class="errmsg">[% errmsg %]</p>
+[% END %]
+
+[% IF success %]
+<p class="success">[% success %]</p>
+[% END %]
+
+<form method="post">
+  <label>Type in player name or part of it:
+  <input type="text" name="invite_name"></label>
+  <button name="submit" value="submit">Find</button>
+</form>
+
+[% IF plrlist %]
+  <p>
+  [% IF plrlist.size %]
+    Choose player to invite from the list:
+    [% FOR plr IN plrlist %]
+    <a href="invite/[% plr %]">[% plr %]</a>
+    [% END %]
+  [% ELSE %]
+    No players matched your search, please try again.
+  [% END %]
+  </p>
+[% END %]
+
+<p><a href="player">Go Back</a></p>

@@ -1,13 +1,49 @@
 <h1>Player page for: [% logname %]</h1>
 
 <ul>
+
 [% IF clan %]
+
 <li>You are
-[% IF admin %]admin[% END %]
-on clan <b>[% clan %]</b> [ <a href="leave_clan">Leave</a> ] </li>
+[% IF admin %]admin[% ELSE %]member[% END %]
+of clan <b>[% clan %]</b></li>
+
+<li><a href="leave_clan">Leave your clan</a></li>
+
+[% IF admin %]
+<li><a href="invite">Invite a new player</a></li>
+  [% IF invinfo.invitees.size %]
+  <li>You have invited following users
+  [ <a href="revoke">Revoke all invites</a> ]:
+    <ul>
+      [% FOR p IN invinfo.invitees %]
+        <li>[% p %] [ <a href="revoke/[% p %]">Revoke</a> ]</li>
+      [% END %]
+    </ul>
+  </li>
+  [% END %]
+[% END %]
+
 [% ELSE %]
+
 <li>You are not member of any clan</li>
 <li><a href="create_clan">Start a new clan</a></li>
+
 [% END %]
+
+[% IF invinfo.invites.size %]
+<li>You have following waiting invitations:
+  <ul>
+    [% FOR p IN invinfo.invites %]
+      <li>[% p.1 %] (from [% p.0 %])
+      [ [% IF !clan %]<a href="accept/[% p.0 %]">Accept</a> |[% END%]
+      <a href="decline/[% p.0 %]">Decline</a> ]</li>
+    [% END %]
+      <li><a href="decline">Decline all invitations</a></li>
+  </ul>
+</li>
+[% END %]
+
 <li><a href="/">Go Back</a></li>
+
 </ul>

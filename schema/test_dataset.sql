@@ -6,8 +6,9 @@ PRAGMA FOREIGN_KEYS = ON;
 
 -- clean up
 
-DELETE FROM clans;
+DELETE FROM invites;
 DELETE FROM players;
+DELETE FROM clans;
 
 -- create two clans: "clan1" and "clan2"
 
@@ -31,3 +32,14 @@ INSERT INTO players (name,pwd,clans_i,clan_admin ) VALUES ('player9','',NULL,0);
 
 UPDATE players
 SET pwd = '{CRYPT}$2a$04$UY6M3D72VPwBGg9djgyZTehWgRH1N55QuyY3otCS8Any97mlItji2';
+
+-- create some invites:
+-- player 1 invites player 5,6,9 to clan 1
+-- player 2 invites player 9 to clan 1
+-- player 5 invites player 9 to clan 2
+
+INSERT INTO invites (invitor, invitee) VALUES ( 1, 5 );
+INSERT INTO invites (invitor, invitee) VALUES ( 1, 6 );
+INSERT INTO invites (invitor, invitee) VALUES ( 1, 9 );
+INSERT INTO invites (invitor, invitee) VALUES ( 2, 9 );
+INSERT INTO invites (invitor, invitee) VALUES ( 5, 9 );
