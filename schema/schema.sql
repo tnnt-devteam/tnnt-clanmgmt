@@ -2,6 +2,7 @@ PRAGMA foreign_keys=on;
 
 DROP TABLE clans;
 DROP TABLE players;
+DROP TABLE invites;
 
 CREATE TABLE clans (
   clans_i INTEGER PRIMARY KEY,
