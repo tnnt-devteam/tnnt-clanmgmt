@@ -82,11 +82,29 @@ sub plr_register
 }
 
 
+#=============================================================================
+# Returns hashref with player info in following keys:
+#
+#   clan_name, clan_admin, clan_id, players_i
+#
+# If extended info is requested, then additional keys are returned:
+#
+#   can_leave, sole_admin
+#
+# 'sole_admin' is true if the player is the only admin in the clan,
+# 'can_leave' is true if the player can leave the clan; player can leave only
+# when there is another clan admin OR he is the last remaining member.
+#=============================================================================
+
 sub plr_info
 {
   #--- arguments
 
-  my ($name) = @_;
+  my ($name, $extended) = @_;
+
+  #--- other variables
+
+  my $re;
 
   #--- get the info
 
@@ -103,8 +121,40 @@ sub plr_info
   if(!$r) {
     return "Player not found";
   }
+  $re = $r;
 
-  return $r;
+  #--- get extended information
+
+  if($extended) {
+
+    my $clan = $re->{'clan_name'};
+    my $clan_info = clan_get_info($clan);
+    if(!ref($clan_info)) {
+      return sprintf(
+        "Failed to get clan info for clan %s (%s)",
+        $clan, $clan_info
+      );
+    }
+
+    my $clan_members_count = keys %{$clan_info->{$clan}};
+    my $clan_admins_count = grep {
+      $clan_info->{$clan}{$_}{clan_admin}
+    } keys %{$clan_info->{$clan}};
+
+    $re->{'sole_admin'} = ($clan_admins_count == 1) + 0;
+    if(
+      $clan_admins_count > 1
+      || $clan_admins_count == $clan_members_count
+    ) {
+      $re->{'can_leave'} = 1;
+    } else {
+      $re->{'can_leave'} = 0;
+    }
+  }
+
+  #--- finish
+
+  return $re;
 }
 
 
@@ -733,9 +783,9 @@ get '/player' => sub {
   my $name = session('logname');
   if(!$name) { return "Unauthenticated!"; }
 
-  #--- get team information for the user
+  #--- get player information
 
-  my $plr = plr_info($name);
+  my $plr = plr_info($name, 1);
   if(!ref($plr)) {
     return $plr;
   }
@@ -750,6 +800,8 @@ get '/player' => sub {
     title => "Devnull Player $name",
     clan => $plr->{'clan_name'},
     admin => $plr->{'clan_admin'},
+    sole_admin => $plr->{'sole_admin'},
+    can_leave => $plr->{'can_leave'},
     invinfo => $invinfo,
     logname => $name
   };
