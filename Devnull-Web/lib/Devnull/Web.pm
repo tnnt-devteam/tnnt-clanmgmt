@@ -671,6 +671,8 @@ sub clan_get_info
 # GET  /decline/<invitor> ... decline a pending invitation
 # GET  /decline           ... decline all pending invitations
 # GET  /accept/<invitor>  ... accept a pending invitation
+# GET  /make_admin        ... display make admin page
+# GET  /make_admin/<plr>  ... give admin rights to another clan member
 
 
 #=============================================================================
@@ -1037,6 +1039,104 @@ get '/accept/:player' => sub {
   if(!ref($r)) { return $r; }
 
   redirect '/player';
+};
+
+
+#=============================================================================
+#=== give admin rights =======================================================
+#=============================================================================
+
+get '/make_admin' => sub {
+
+  #--- only for logged in users
+
+  my $name = session('logname');
+  if(!$name) { return "Unauthenticated!"; }
+
+  #--- only for clan admins
+
+  my $plr = plr_info($name);
+  if(!ref($plr)) { return "Couldn't find player '$name'"; }
+  if(!$plr->{'clan_id'} || !$plr->{'clan_admin'}) {
+    return "Only clan admins can give admin rights";
+  }
+  my $clan = $plr->{'clan_name'};
+
+  #--- find eligible players (ie. clan members without admin)
+
+  my $clans = clan_get_info($clan);
+  if(!ref($clans)) { return "Failed to get clan info ($clans)"; }
+
+  my @eligible_players = grep {
+    !$clans->{$clan}{$_}{'clan_admin'}
+  } sort keys %{$clans->{$clan}};
+
+
+  template 'make_admin', {
+    title => 'Devnull / Make Admin',
+    clan => $clan,
+    eligible => \@eligible_players
+  };
+
+};
+
+
+#=============================================================================
+#=== give admin rights to a player ===========================================
+#=============================================================================
+
+get '/make_admin/:player' => sub {
+
+  my $grantee = route_parameters->get('player');
+
+  #--- only for logged in users
+
+  my $name = session('logname');
+  if(!$name) { return "Unauthenticated!"; }
+
+  #--- only for clan admins
+
+  my $plr = plr_info($name);
+  if(!ref($plr)) { return "Couldn't find player '$name'"; }
+  if(!$plr->{'clan_id'} || !$plr->{'clan_admin'}) {
+    return "Only clan admins can give admin rights";
+  }
+  my $clan = $plr->{'clan_name'};
+
+  #--- get clan information about the clan
+
+  my $clan_info = clan_get_info($clan);
+  if(!ref($clan_info)) { return "Failed to get clan info ($clan_info)"; }
+  if(!exists $clan_info->{$clan}) {
+    return "Fatal error while trying to get clan info";
+  }
+  $clan_info = $clan_info->{$clan};
+
+  #--- get info about the grantee
+
+  my $grantee_info = plr_info($grantee);
+  if(!ref($grantee_info)) {
+    return "Failed to get player info on $grantee ($grantee_info)";
+  }
+  if($grantee_info->{'clan_admin'}) {
+    return "Player $grantee already is admin";
+  }
+
+  #--- give admin rights
+
+  my $r = database->do(
+    'UPDATE players SET clan_admin = 1 WHERE players_i = ?', undef,
+    $grantee_info->{'players_i'}
+  );
+  if(!$r) {
+    return "Failed to grant admin rights to $grantee ($r)";
+  }
+
+  #--- finish
+
+  # FIXME: Change this to clan listing once we have that
+  redirect '/make_admin';
+
 };
 
 
