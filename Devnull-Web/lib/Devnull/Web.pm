@@ -558,6 +558,41 @@ sub plr_accept_invitation
 }
 
 
+#=============================================================================
+# Get clan info listing for specified clan or all clans.
+#=============================================================================
+
+sub clan_get_info
+{
+  #--- arguments
+
+  my ($clan) = @_;
+
+  #--- query the database
+
+  my $sth = database->prepare(
+    'SELECT c.name AS clan, clans_i, p.name AS player, players_i, clan_admin ' .
+    'FROM clans c LEFT JOIN players p USING (clans_i)' .
+    ($clan ? ' WHERE c.name = ?' : '')
+  );
+  if(!ref($sth)) { return "Couldn't get query handle\n"; }
+  my $r = $sth->execute($clan ? ($clan) : ());
+  if(!$r) {
+    die sprintf("Failed to query database (%s)\n", $r);
+  }
+
+  my %re;
+  while(my $row = $sth->fetchrow_hashref()) {
+    $re
+      {$row->{'clan'}}
+      {$row->{'player'}}
+    = $row;
+  }
+
+  return \%re;
+
+}
+
 
 #=============================================================================
 #==================   _  =====================================================
