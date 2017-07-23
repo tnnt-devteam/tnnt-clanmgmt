@@ -673,6 +673,7 @@ sub clan_get_info
 # GET  /accept/<invitor>  ... accept a pending invitation
 # GET  /make_admin        ... display make admin page
 # GET  /make_admin/<plr>  ... give admin rights to another clan member
+# GET  /resign_admin      ... resign admin rights
 
 
 #=============================================================================
@@ -1138,6 +1139,75 @@ get '/make_admin/:player' => sub {
   redirect '/make_admin';
 
 };
+
+
+#=============================================================================
+#=== give admin rights to a player ===========================================
+#=============================================================================
+
+get '/resign_admin' => sub {
+
+  #--- only for logged in users
+
+  my $name = session('logname');
+  if(!$name) { return "Unauthenticated!"; }
+
+  #--- only for clan admins
+
+  my $plr = plr_info($name, 1);
+  if(!ref($plr)) { return "Couldn't find player '$name'"; }
+  if(!$plr->{'clan_id'} || !$plr->{'clan_admin'}) {
+    return "Only clan admins can give admin rights";
+  }
+  my $clan = $plr->{'clan_name'};
+
+  #--- the only admin on the team is blocked from resigning
+
+  if($plr->{'sole_admin'}) {
+    return "Sole admin for the team cannot resign";
+  }
+
+  #--- start database transaction
+
+  my $r = database->begin_work();
+  if(!$r) { return "Could not start database transaction"; }
+
+  try {
+
+  #--- perform resignation
+
+    $r = database->do(
+      'UPDATE players SET clan_admin = 0 WHERE players_i = ?', undef,
+      $plr->{'players_i'}
+    );
+    if(!$r) {
+      die "Failed to remove admin rights for $name ($r)\n";
+    }
+
+  #--- drop all given invites
+
+    $r = database->do(
+      'DELETE FROM invites WHERE invitor =?', undef,
+      $plr->{'players_i'}
+    );
+    if(!$r) {
+      die "Failed to remove invites upon resignation ($r)\n";
+    }
+
+  #--- abort transaction
+
+  } catch {
+    database->rollback();
+    return "Failed to resign admin role ($@)";
+  }
+
+  #--- finish successfully
+
+  database->commit();
+  redirect '/player';
+
+};
+
 
 
 true;
