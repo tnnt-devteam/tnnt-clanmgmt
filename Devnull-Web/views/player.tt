@@ -2,18 +2,45 @@
 
 <ul>
 
-[% IF clan %]
+[% IF clan %] [%# === START OF CLAN MEMBER SECTION ======================== %]
 
-<li>You are
-[% IF admin %]admin[% ELSE %]member[% END %]
-of clan <b>[% clan %]</b></li>
+  [%# ---------------------------------------------------------------------
+      --- clan membership information / admin status information ----------
+      --------------------------------------------------------------------- %]
 
-<li><a href="leave_clan">Leave your clan</a></li>
+  <li>You are
+  [% IF admin %]
+    [% IF sole_admin %]
+      the sole
+    [% END %]
+    admin
+  [% ELSE %]
+    member
+  [% END %]
+  of clan <b>[% clan %]</b></li>
 
-[% IF admin %]
-<li><a href="invite">Invite a new player</a></li>
+  [%# ---------------------------------------------------------------------
+      --- clan leave ------------------------------------------------------
+      --------------------------------------------------------------------- %]
+
+  [% IF can_leave %]
+  <li><a href="leave_clan">Leave your clan</a></li>
+  [% END %]
+
+  [% IF admin %] [%# === START OF ADMIN ONLY SECTION ====================== %]
+
+  [%# ---------------------------------------------------------------------
+      --- invite new player -----------------------------------------------
+      --------------------------------------------------------------------- %]
+
+  <li><a href="invite">Invite a new player</a></li>
+
+  [%# ---------------------------------------------------------------------
+      --- list of given invitations ---------------------------------------
+      --------------------------------------------------------------------- %]
+
   [% IF invinfo.invitees.size %]
-  <li>You have invited following users
+  <li>You have invited following players
   [ <a href="revoke">Revoke all invites</a> ]:
     <ul>
       [% FOR p IN invinfo.invitees %]
@@ -22,14 +49,34 @@ of clan <b>[% clan %]</b></li>
     </ul>
   </li>
   [% END %]
-[% END %]
 
-[% ELSE %]
+  [%# ---------------------------------------------------------------------
+      --- give admin rights -----------------------------------------------
+      --------------------------------------------------------------------- %]
 
-<li>You are not member of any clan</li>
-<li><a href="create_clan">Start a new clan</a></li>
+  <li><a href="make_admin">Give admin rights to another team member</a></li>
 
-[% END %]
+  [%# ---------------------------------------------------------------------
+      --- resign admin role -----------------------------------------------
+      --------------------------------------------------------------------- %]
+
+  [% IF !sole_admin %]
+  <li><a href="resign_admin">Give up admin rights</a></li>
+  [% END %]
+
+  [% END %] [%# === END OF ADMIN ONLY SECTION ============================= %]
+
+[% ELSE %] [%# === START OF CLAN NON-MEMBER SECTION ======================= %]
+
+  <li>You are not member of any clan</li>
+  <li><a href="create_clan">Start a new clan</a></li>
+
+[% END %] [%# === END OF CLAN-NON MEMBER SECTION ========================== %]
+
+
+  [%# ---------------------------------------------------------------------
+      --- list of pending invitations -------------------------------------
+      --------------------------------------------------------------------- %]
 
 [% IF invinfo.invites.size %]
 <li>You have following waiting invitations:
@@ -43,6 +90,10 @@ of clan <b>[% clan %]</b></li>
   </ul>
 </li>
 [% END %]
+
+  [%# ---------------------------------------------------------------------
+      --- return link -----------------------------------------------------
+      --------------------------------------------------------------------- %]
 
 <li><a href="/">Go Back</a></li>
 
