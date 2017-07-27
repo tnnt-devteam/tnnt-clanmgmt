@@ -1076,7 +1076,8 @@ get '/make_admin' => sub {
   template 'make_admin', {
     title => 'Devnull / Make Admin',
     clan => $clan,
-    eligible => \@eligible_players
+    eligible => \@eligible_players,
+    rt => '/make_admin'
   };
 
 };
@@ -1089,6 +1090,7 @@ get '/make_admin' => sub {
 get '/make_admin/:player' => sub {
 
   my $grantee = route_parameters->get('player');
+  my $rt = query_parameters->get('rt');
 
   #--- only for logged in users
 
@@ -1136,7 +1138,7 @@ get '/make_admin/:player' => sub {
   #--- finish
 
   # FIXME: Change this to clan listing once we have that
-  redirect '/make_admin';
+  redirect $rt || "/clan/$clan";
 
 };
 
@@ -1146,6 +1148,10 @@ get '/make_admin/:player' => sub {
 #=============================================================================
 
 get '/resign_admin' => sub {
+
+  #--- return page
+
+  my $rt = query_parameters->get('rt');
 
   #--- only for logged in users
 
