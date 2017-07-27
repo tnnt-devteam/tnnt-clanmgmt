@@ -1144,7 +1144,6 @@ get '/make_admin/:player' => sub {
 
   #--- finish
 
-  # FIXME: Change this to clan listing once we have that
   redirect $rt || "/clan/$clan";
 
 };
