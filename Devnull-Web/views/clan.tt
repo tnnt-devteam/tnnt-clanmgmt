@@ -1,0 +1,46 @@
+[% BLOCK actions %]
+  [% IF actset %]
+    [
+    [% SET f = 0 %]
+    [% FOR action IN actset %]
+      [% IF f %]|[% END %]
+      <a href="[% action.0 %]?rt=/clan/clan1">[% action.1 %]</a>
+      [% SET f = 1 %]
+    [% END %]
+    ]
+  [% END %]
+[% END %]
+
+
+<h1>Devnull / Clan <em>[% clan.name %]</em></h1>
+
+<p>This clan has [% clan.players.size %] members</p>
+
+<ul>
+
+  <li>admins</li>
+
+  <ul>
+    [% FOR plr IN clan.admins %]
+      <li>
+        [% plr %]
+        [% INCLUDE actions actset=actions.item(plr) %]
+      </li>
+    [% END %]
+  </ul>
+
+  [% IF clan.regulars.size %]
+  <li>regular players</li>
+  <ul>
+    [% FOR plr IN clan.regulars %]
+      <li>
+        [% plr %]
+        [% INCLUDE actions actset=actions.item(plr) %]
+      </li>
+    [% END %] 
+  </ul>
+  [% END %]
+
+</ul>
+
+<p><a href="/">Go Back</p>

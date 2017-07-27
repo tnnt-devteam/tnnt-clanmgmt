@@ -674,6 +674,7 @@ sub clan_get_info
 # GET  /make_admin        ... display make admin page
 # GET  /make_admin/<plr>  ... give admin rights to another clan member
 # GET  /resign_admin      ... resign admin rights
+# GET  /clan/<clan>       ... clan info page
 
 
 #=============================================================================
@@ -1210,10 +1211,106 @@ get '/resign_admin' => sub {
   #--- finish successfully
 
   database->commit();
-  redirect '/player';
+  redirect $rt || '/player';
 
 };
 
+
+#=============================================================================
+#=== list a clan membership ==================================================
+#=============================================================================
+
+get '/clan/:clan' => sub {
+
+  #--- gather info, note, that this page doesn't require user to be logged in
+
+  my $name = session('logname');
+  my $clan = route_parameters->get('clan');
+
+  #--- response hash
+
+  my %response;
+
+  #--- load player info
+
+  my ($plr_info, $clan_info);
+
+  if($name) {
+    $plr_info = plr_info($name, 1);
+    if(!ref($plr_info)) {
+      return "Failed to get info on user $name ($plr_info)";
+    }
+    $response{'name'} = $name;
+    $response{'admin'} = $plr_info->{'clan_admin'};
+  }
+
+  #--- load clan info
+
+  $clan_info = clan_get_info($clan);
+  if(!ref($clan_info)) {
+    return "Failed to get info on clan $clan ($clan_info)";
+  }
+  $response{'title'} = "Devnull / Clan $clan";
+  $response{'clan'}{'name'} = $clan;
+
+  #--- list of all players
+
+  my $players_all = $response{'clan'}{'players'} = [
+    sort keys %{$clan_info->{$clan}}
+  ];
+
+  #--- list of admin players
+
+  my $players_admin = $response{'clan'}{'admins'} = [
+    grep {
+      $clan_info->{$clan}{$_}{'clan_admin'};
+    } sort keys %{$clan_info->{$clan}}
+  ];
+
+  #--- list of regular (non-admin) players
+
+  my $players_reg = $response{'clan'}{'regulars'} = [
+    grep {
+      !$clan_info->{$clan}{$_}{'clan_admin'};
+    } sort keys %{$clan_info->{$clan}}
+  ];
+
+  #--- attach "actions" to each players
+
+  $response{'actions'} = {};
+  if($name) {
+    for my $player (@$players_all) {
+
+      # kick, give admin
+      if(
+        $response{'admin'}
+        && grep { $_ eq $player } @$players_reg
+      ) {
+        push(@{$response{'actions'}{$player}},
+          [ "/kick/$player", "Kick" ],
+          [ "/make_admin/$player", "Make admin" ]
+        );
+      }
+
+      # resign admin
+      if(
+        $response{'admin'}
+        && !$plr_info->{'sole_admin'}
+        && $player eq $name
+      ) {
+        push(@{$response{'actions'}{$player}},
+          [ '/resign_admin', 'Resign admin' ]
+        );
+      }
+
+    }
+  }
+
+  #--- finish
+
+  template 'clan', \%response;
+
+};
 
 
 true;
