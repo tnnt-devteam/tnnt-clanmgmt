@@ -1126,6 +1126,12 @@ get '/make_admin/:player' => sub {
     return "Player $grantee already is admin";
   }
 
+  #--- grantor and grantee clans must match
+
+  if($plr->{'clan_id'} != $grantee_info->{'clan_id'}) {
+    return "You cannot grant admin rights to player not in your clan";
+  }
+
   #--- give admin rights
 
   my $r = database->do(
