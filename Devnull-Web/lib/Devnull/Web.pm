@@ -907,6 +907,7 @@ any '/invite' => sub {
   my $plr = plr_info($name);
   if(!ref($plr)) { return "Failed to get player info"; }
   if(!$plr->{'clan_admin'}) { return "Only clan admins can invite players"; }
+  $data->{'clan'} = $plr->{'clan_name'};
 
   #--- process POST data
 

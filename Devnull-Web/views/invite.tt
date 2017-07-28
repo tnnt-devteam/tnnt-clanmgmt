@@ -27,4 +27,4 @@
   </p>
 [% END %]
 
-<p><a href="player">Go Back</a></p>
+<p><a href="clan/[% clan %]">Go Back</a></p>
