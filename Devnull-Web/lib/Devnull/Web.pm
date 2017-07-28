@@ -684,7 +684,14 @@ sub clan_get_info
 get '/' => sub {
   my $data = { title => 'Devnull Front Page' };
   my $logname = session('logname');
-  if($logname) { $data->{'logname'} = $logname; }
+  if($logname) {
+    my $plr = plr_info($logname);
+    if(ref($plr)) {
+      $data->{'clan'} = $plr->{'clan_name'};
+      $data->{'admin'} = $plr->{'clan_admin'};
+    }
+    $data->{'logname'} = $logname;
+  }
   template 'index', $data;
 };
 

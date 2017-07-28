@@ -2,9 +2,13 @@
 
 </p>
 [% IF logname %]
-Logged in as: <b><a href="player">[% logname %]</a></b>
+  Logged in as:
+  <b>[% logname %]</b>
+  [% IF clan %]
+  @ <b>[% clan %]</b>
+  [% END %]
 [% ELSE %]
-Not logged in
+  Not logged in
 [% END %]
 </p>
 
@@ -12,6 +16,11 @@ Not logged in
 <ul>
 [% IF logname %]
 <li><a href="player">Go to your settings</a></li>
+
+<li><a href="clan/[% clan %]">
+[% IF admin %]Manage[% ELSE %]View[% END %] your clan</a>
+</li>
+
 <li><a href="logout">Log out</a></li>
 [% ELSE %]
 <li><a href="register">Register new user</a></li>
