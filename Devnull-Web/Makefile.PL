@@ -9,9 +9,9 @@ $eumm_version =~ s/_//;
 
 WriteMakefile(
     NAME                => 'Devnull::Web',
-    AUTHOR              => q{YOUR NAME <youremail@example.com>},
+    AUTHOR              => q{Borek Lupomesky <borek@lupomesky.cz>},
     VERSION_FROM        => 'lib/Devnull/Web.pm',
-    ABSTRACT            => 'YOUR APPLICATION ABSTRACT',
+    ABSTRACT            => '/dev/null/nethack central server reimplementation',
     ($eumm_version >= 6.3001
       ? ('LICENSE'=> 'perl')
       : ()),
