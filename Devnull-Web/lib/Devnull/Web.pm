@@ -10,7 +10,6 @@
 package Devnull::Web;
 use Dancer2;
 use Dancer2::Plugin::Database;
-use Dancer2::Plugin::Passphrase;
 use Syntax::Keyword::Try;
 
 our $VERSION = '0.1';
@@ -41,7 +40,7 @@ sub plr_authenticate
     my $r = $sth->execute($name);
     if(!$r) { return "Failed to query database"; }
     my ($pw_db) = $sth->fetchrow_array();
-    if($pw_db && passphrase($pwd)->matches($pw_db)) {
+    if($pw_db eq $pwd) {
       return [];
     } else {
       return "Wrong player name or password";
@@ -67,7 +66,7 @@ sub plr_register
 
   my $r = database->do(
     'INSERT INTO players ( name, pwd ) VALUES ( ?, ? )',
-    undef, $name, passphrase($pwd)->generate->rfc2307()
+    undef, $name, $pwd
   );
   if(!$r) {
     my $err = database->errstr();
