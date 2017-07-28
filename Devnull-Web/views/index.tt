@@ -17,9 +17,11 @@
 [% IF logname %]
 <li><a href="player">Go to your settings</a></li>
 
-<li><a href="clan/[% clan %]">
-[% IF admin %]Manage[% ELSE %]View[% END %] your clan</a>
-</li>
+  [% IF clan %]
+  <li><a href="clan/[% clan %]">
+  [% IF admin %]Manage[% ELSE %]View[% END %] your clan</a>
+  </li>
+  [% END %]
 
 <li><a href="logout">Log out</a></li>
 [% ELSE %]
