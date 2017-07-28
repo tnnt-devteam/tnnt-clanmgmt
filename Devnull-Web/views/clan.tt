@@ -43,4 +43,12 @@
 
 </ul>
 
+[% IF admin %]
+<p>Management options:</p>
+
+<ul>
+  <li><a href="/invite">Invite a player</a></li>
+</ul>
+[% END %]
+
 <p><a href="/">Go Back</p>
