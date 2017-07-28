@@ -675,6 +675,7 @@ sub clan_get_info
 # GET  /make_admin/<plr>  ... give admin rights to another clan member
 # GET  /resign_admin      ... resign admin rights
 # GET  /clan/<clan>       ... clan info page
+# GET  /kick/<plr>        ... kick player out of a clan
 
 
 #=============================================================================
@@ -1322,6 +1323,62 @@ get '/clan/:clan' => sub {
 
   template 'clan', \%response;
 
+};
+
+
+#=============================================================================
+#=== kick player out of a clan ===============================================
+#=============================================================================
+
+get '/kick/:player' => sub {
+
+  #--- get parameters
+
+  my $target = route_parameters->get('player');
+  my $rt = query_parameters->get('rt');
+
+  #--- only for logged in users
+
+  my $name = session('logname');
+  if(!$name) { return "Unauthenticated!"; }
+
+  #--- only for clan admins
+
+  my $plr = plr_info($name);
+  if(!ref($plr)) { return "Couldn't find player '$name'"; }
+  if(!$plr->{'clan_id'} || !$plr->{'clan_admin'}) {
+    return "Only clan admins can kick players";
+  }
+  my $clan = $plr->{'clan_name'};
+
+  #--- get information about the player to be kicked
+
+  my $target_info = plr_info($target);
+  if(!ref($target_info)) {
+    return 'Cannot get info on player to be kicked';
+  }
+
+  #--- admin can only kick players in the same clan
+
+  if($plr->{'clan_id'} != $target_info->{'clan_id'}) {
+    return 'You cannot kick player not in your clan';
+  }
+
+  #--- kick player
+
+  my $r = database->do(
+    'UPDATE players SET clans_i = NULL, clan_admin = 0 WHERE players_i = ?',
+    undef, $target_info->{'players_i'}
+  );
+  if(!$r) {
+    return sprintf(
+      'Failed to kick player %s (%s)', $target, database->errstr()
+    );
+  }
+
+  #--- finish
+
+  redirect $rt || "/clan/$clan";
 };
 
 
