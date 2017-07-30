@@ -48,6 +48,24 @@
 
 <ul>
   <li><a href="/invite">Invite a player</a></li>
+  [% IF clan.invites.size %]
+  <li><a href="/clan_revoke">Revoke all invitations</a></li>
+  [% END %]
+</ul>
+[% END %]
+
+[% IF clan.invites.size %]
+<p>Outstanding invites to the clan:</p>
+
+<ul>
+
+[% FOR row IN clan.invites %]
+  <li>
+  [% row.invitee %], invited by [% row.invitor %]
+  [ <a href="/clan_revoke/[% row.invitee %]">Revoke</a> ]
+  </li>
+[% END %]
+
 </ul>
 [% END %]
 

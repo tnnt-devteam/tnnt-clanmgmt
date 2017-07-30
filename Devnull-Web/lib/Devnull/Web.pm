@@ -119,6 +119,9 @@ sub plr_change_password
 }
 
 
+#=============================================================================
+# Returns hashref with player info retrieved from backend database in
+# following keys:
 #
 #   clan_name, clan_admin, clan_id, players_i
 #
@@ -171,10 +174,10 @@ sub plr_info
       );
     }
 
-    my $clan_members_count = keys %{$clan_info->{$clan}};
+    my $clan_members_count = keys %{$clan_info->{$clan}{'players'}};
     my $clan_admins_count = grep {
-      $clan_info->{$clan}{$_}{clan_admin}
-    } keys %{$clan_info->{$clan}};
+      $clan_info->{$clan}{'players'}{$_}{clan_admin}
+    } keys %{$clan_info->{$clan}{'players'}};
 
     $re->{'sole_admin'} = ($clan_admins_count == 1) + 0;
     if(
@@ -525,6 +528,44 @@ sub plr_revoke_invitations
   return { deleted => $r };
 }
 
+#=============================================================================
+# Clan-centric invitations revocation. Revokes all invitations to a clan for
+# a given invetee (if specified) or all invitations (if invitee not
+# specified). Note, that this function does not check any authorizations --
+# that must be done by the caller.
+#=============================================================================
+
+sub clan_revoke_invitations
+{
+  #--- arguments
+
+  my ($clan, $invitee) = @_;
+
+  #--- drop invitations
+
+  my $qry =
+    'DELETE FROM invites WHERE rowid IN ( '
+    . 'SELECT invites.rowid FROM invites '
+    . 'LEFT JOIN players p1 ON invitor = p1.players_i '
+    . 'LEFT JOIN players p2 ON invitee = p2.players_i '
+    . 'LEFT JOIN clans USING (clans_i) '
+    . 'WHERE clans.name = ?';
+  my @arg = ($clan);
+  if($invitee) {
+    $qry .= ' AND p2.name = ?';
+    push(@arg, $invitee);
+  }
+  $qry .= ')';
+  my $r = database->do($qry, undef, @arg);
+  if(!$r) {
+    return sprintf 'Failed to drop invitations (%s)', database->errstr();
+  }
+
+  #--- finish successfully
+
+  return { deleted => $r };
+}
+
 
 #=============================================================================
 # Function declines invitation the player has pending from another. Only the
@@ -656,7 +697,25 @@ sub plr_accept_invitation
 
 
 #=============================================================================
-# Get clan info listing for specified clan or all clans.
+# Get clan info listing for specified clan or all clans. The result is
+# returned as hashref of following structure:
+#
+# HASHREF = {
+#             CLAN_NAME => {
+#               players => {
+#                 PLAYER_NAME => {
+#                   clan, clans_i, player, players_i, clan_admin
+#                 },
+#                 ...
+#               },
+#               invites => [
+#                 { invitor, invitee },
+#                 ...
+#               ]
+#             },
+#             ...
+#           }
+#
 #=============================================================================
 
 sub clan_get_info
@@ -665,7 +724,7 @@ sub clan_get_info
 
   my ($clan) = @_;
 
-  #--- query the database
+  #--- query the database for clans/players
 
   my $sth = database->prepare(
     'SELECT c.name AS clan, clans_i, p.name AS player, players_i, clan_admin ' .
@@ -675,15 +734,41 @@ sub clan_get_info
   if(!ref($sth)) { return "Couldn't get query handle\n"; }
   my $r = $sth->execute($clan ? ($clan) : ());
   if(!$r) {
-    die sprintf("Failed to query database (%s)\n", $r);
+    return sprintf("Failed to query database (%s)\n", $sth->errstr());
   }
 
   my %re;
   while(my $row = $sth->fetchrow_hashref()) {
     $re
       {$row->{'clan'}}
+      {'players'}
       {$row->{'player'}}
     = $row;
+  }
+
+  #--- query the database for outstanding invitations
+
+  $sth = database->prepare(
+    'SELECT p1.name AS invitor, p2.name AS invitee, c.name AS clan '
+    . 'FROM invites LEFT JOIN players p1 ON invitor = p1.players_i '
+    . 'LEFT JOIN players p2 ON invitee = p2.players_i '
+    . 'LEFT JOIN clans c USING ( clans_i)'
+    . ($clan ? ' WHERE c.name = ?' : '')
+    . ' ORDER BY creat_when'
+  );
+  if(!ref($sth)) {
+    return sprintf "Could not get query handle (%s)\n", database->errstr();
+  }
+  $r = $sth->execute($clan ? ($clan) : ());
+  if(!$r) {
+    return sprintf("Failed to query database (%s)\n", $sth->errstr());
+  }
+
+  while(my $row = $sth->fetchrow_hashref()) {
+    push(
+      @{$re{$row->{'clan'}}{'invites'}},
+      { 'invitor' => $row->{'invitor'}, 'invitee' => $row->{'invitee'} }
+    );
   }
 
   return \%re;
@@ -717,6 +802,8 @@ sub clan_get_info
 # GET  /invite/<invitee>  ... invite a player to a clan
 # GET  /revoke/<invitee>  ... revoke an existing invitation
 # GET  /revoke            ... revoke all issued invitations
+# GET  /clan_revoke       ... revoke all clan invitations
+# GET  /clan_revoke/<plr> ... revoke all clan invitations of a player
 # GET  /decline/<invitor> ... decline a pending invitation
 # GET  /decline           ... decline all pending invitations
 # GET  /accept/<invitor>  ... accept a pending invitation
@@ -1211,7 +1298,6 @@ get '/make_admin/:player' => sub {
   if(!exists $clan_info->{$clan}) {
     return "Fatal error while trying to get clan info";
   }
-  $clan_info = $clan_info->{$clan};
 
   #--- get info about the grantee
 
@@ -1358,23 +1444,23 @@ get '/clan/:clan' => sub {
   #--- list of all players
 
   my $players_all = $response{'clan'}{'players'} = [
-    sort keys %{$clan_info->{$clan}}
+    sort keys %{$clan_info->{$clan}{'players'}}
   ];
 
   #--- list of admin players
 
   my $players_admin = $response{'clan'}{'admins'} = [
     grep {
-      $clan_info->{$clan}{$_}{'clan_admin'};
-    } sort keys %{$clan_info->{$clan}}
+      $clan_info->{$clan}{'players'}{$_}{'clan_admin'};
+    } sort keys %{$clan_info->{$clan}{'players'}}
   ];
 
   #--- list of regular (non-admin) players
 
   my $players_reg = $response{'clan'}{'regulars'} = [
     grep {
-      !$clan_info->{$clan}{$_}{'clan_admin'};
-    } sort keys %{$clan_info->{$clan}}
+      !$clan_info->{$clan}{'players'}{$_}{'clan_admin'};
+    } sort keys %{$clan_info->{$clan}{'players'}}
   ];
 
   #--- attach "actions" to each players
@@ -1407,6 +1493,10 @@ get '/clan/:clan' => sub {
 
     }
   }
+
+  #--- outstanding invites
+
+  $response{'clan'}{'invites'} = $clan_info->{$clan}{'invites'};
 
   #--- finish
 
@@ -1468,6 +1558,73 @@ get '/kick/:player' => sub {
   #--- finish
 
   redirect $rt || "/clan/$clan";
+};
+
+
+#=============================================================================
+# Clan-centric invites revocation
+#=============================================================================
+
+get '/clan_revoke' => sub {
+
+  #--- only for logged in users
+
+  my $name = session('logname');
+  if(!$name) { return "Unauthenticated!"; }
+
+  #--- only for clan admins
+
+  my $plr = plr_info($name);
+  if(!ref($plr)) { return "Couldn't find player '$name'"; }
+  if(!$plr->{'clan_id'} || !$plr->{'clan_admin'}) {
+    return "Only clan admins can kick players";
+  }
+  my $clan = $plr->{'clan_name'};
+
+  #--- perform revocation
+
+  my $r = clan_revoke_invitations($clan);
+  if(!ref($r)) {
+    return $r;
+  }
+
+  #--- finish
+
+  redirect "/clan/$clan";
+
+};
+
+get '/clan_revoke/:player' => sub {
+
+  #--- get parameters
+
+  my $player = route_parameters->get('player');
+
+  #--- only for logged in users
+
+  my $name = session('logname');
+  if(!$name) { return "Unauthenticated!"; }
+
+  #--- only for clan admins
+
+  my $plr = plr_info($name);
+  if(!ref($plr)) { return "Could not find player '$name' ($plr)"; }
+  if(!$plr->{'clan_id'} || !$plr->{'clan_admin'}) {
+    return "Only clan admins can kick players";
+  }
+  my $clan = $plr->{'clan_name'};
+
+  #--- perform revocation
+
+  my $r = clan_revoke_invitations($clan, $player);
+  if(!ref($r)) {
+    return $r;
+  }
+
+  #--- finish
+
+  redirect "/clan/$clan";
+
 };
 
 
