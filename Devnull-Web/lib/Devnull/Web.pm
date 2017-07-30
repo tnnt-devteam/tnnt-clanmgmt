@@ -24,6 +24,12 @@ our $VERSION = '0.1';
 #===                                               ===========================
 #=============================================================================
 
+
+#=============================================================================
+# Verify player credentials (name, password). Returns reference on success,
+# error text otherwise.
+#=============================================================================
+
 sub plr_authenticate
 {
   #--- arguments
@@ -52,6 +58,11 @@ sub plr_authenticate
   return "Player name or password not specified";
 }
 
+
+#=============================================================================
+# Inserts new player into backend database. Returns ref on success, error text
+# otherwise.
+#=============================================================================
 
 sub plr_register
 {
@@ -157,6 +168,11 @@ sub plr_info
 }
 
 
+#=============================================================================
+# This creates new clan with a player as admin. Returns hashref with 'clan_id'
+# key, error text otherwise.
+#=============================================================================
+
 sub plr_start_clan
 {
   #--- arguments
@@ -228,6 +244,13 @@ sub plr_start_clan
   return { clan_id => $clans_i };
 }
 
+
+#=============================================================================
+# Removes a player from clan. This function also destroys the clan if there
+# are no remaining members and drops all outstanding invitation the player
+# has issued for the clan. This function does not check if the remaining
+# clan has any admins! Returns ref on success, error text otherwise.
+#=============================================================================
 
 sub plr_leave_clan
 {
