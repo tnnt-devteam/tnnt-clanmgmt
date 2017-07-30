@@ -1165,7 +1165,7 @@ get '/invite/:invitee' => sub {
   if(!ref($r)) {
     return $r;
   } else {
-    redirect '/player';
+    redirect '/clan/' . $plr->{'clan_name'};
   }
 };
 
