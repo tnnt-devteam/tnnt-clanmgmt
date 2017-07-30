@@ -720,7 +720,6 @@ sub clan_get_info
 # GET  /decline/<invitor> ... decline a pending invitation
 # GET  /decline           ... decline all pending invitations
 # GET  /accept/<invitor>  ... accept a pending invitation
-# GET  /make_admin        ... display make admin page
 # GET  /make_admin/<plr>  ... give admin rights to another clan member
 # GET  /resign_admin      ... resign admin rights
 # GET  /clan/<clan>       ... clan info page
@@ -1179,46 +1178,6 @@ get '/accept/:player' => sub {
   if(!ref($r)) { return $r; }
 
   redirect '/player';
-};
-
-
-#=============================================================================
-#=== give admin rights =======================================================
-#=============================================================================
-
-get '/make_admin' => sub {
-
-  #--- only for logged in users
-
-  my $name = session('logname');
-  if(!$name) { return "Unauthenticated!"; }
-
-  #--- only for clan admins
-
-  my $plr = plr_info($name);
-  if(!ref($plr)) { return "Couldn't find player '$name'"; }
-  if(!$plr->{'clan_id'} || !$plr->{'clan_admin'}) {
-    return "Only clan admins can give admin rights";
-  }
-  my $clan = $plr->{'clan_name'};
-
-  #--- find eligible players (ie. clan members without admin)
-
-  my $clans = clan_get_info($clan);
-  if(!ref($clans)) { return "Failed to get clan info ($clans)"; }
-
-  my @eligible_players = grep {
-    !$clans->{$clan}{$_}{'clan_admin'}
-  } sort keys %{$clans->{$clan}};
-
-
-  template 'make_admin', {
-    title => 'Devnull / Make Admin',
-    clan => $clan,
-    eligible => \@eligible_players,
-    rt => '/make_admin'
-  };
-
 };
 
 
