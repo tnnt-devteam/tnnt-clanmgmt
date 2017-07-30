@@ -1,0 +1,30 @@
+<h1>Devnull Change Password</h1>
+
+[% IF success %]
+<p class="success">[% success %]</p>
+[% ELSE %]
+[% IF errmsg %]
+<p class="errmsg">[% errmsg %]</p>
+[% END %]
+
+<form class="changepw" method="post">
+  <div>
+    <label for="chg_pwd0">Old password</label>
+    <input type="password" name="chg_pwd0">
+  </div>
+  <div>
+    <label for="chg_pwd1">New password</label>
+    <input type="password" name="chg_pwd1">
+  </div>
+  <div>
+    <label for="chg_pwd2">New password</label>
+    <input type="password" name="chg_pwd2">
+  </div>
+  <div class="buttons">
+    <button name="submit" value="submit">Change</button>
+  </div>
+</form>
+
+[% END %]
+
+<p><a href="player">Go Back</a></p>

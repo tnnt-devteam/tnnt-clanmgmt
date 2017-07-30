@@ -6,6 +6,11 @@ P.errmsg {
   color : red;
 }
 
+P.success {
+  font-size: 150%;
+  color : green;
+}
+
 FORM.newuser LABEL {
   display: inline-block;
   width: 8em;
