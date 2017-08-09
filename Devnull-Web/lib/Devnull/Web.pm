@@ -530,7 +530,7 @@ sub plr_revoke_invitations
 
 #=============================================================================
 # Clan-centric invitations revocation. Revokes all invitations to a clan for
-# a given invetee (if specified) or all invitations (if invitee not
+# a given invitee (if specified) or all invitations (if invitee not
 # specified). Note, that this function does not check any authorizations --
 # that must be done by the caller.
 #=============================================================================
