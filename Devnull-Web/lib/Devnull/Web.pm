@@ -697,6 +697,72 @@ sub plr_accept_invitation
 
 
 #=============================================================================
+#=============================================================================
+
+sub clan_disband
+{
+  #--- arguments
+
+  my ($name) = @_;
+
+  #--- get player info
+
+  my $plr = plr_info($name);
+  if(!ref($plr)) {
+    return "Could not get player information ($plr)";
+  }
+  if(!$plr->{'clan_admin'}) {
+    return "Only admins can disband clans";
+  }
+
+  #--- begin transaction
+
+  my $r = database->begin_work();
+  if(!$r) { return "Could not start database transaction"; }
+
+  try {
+
+  #--- delete all invites for the clan
+
+    $r = clan_revoke_invitations($plr->{'clan_name'});
+    if(!ref($r)) {
+      die "$r\n";
+    }
+
+  #--- remove all players and clear their admin flag
+
+    $r = database->do(
+      'UPDATE players SET clans_i = NULL, clan_admin = 0 WHERE clans_i = ?',
+      undef, $plr->{'clan_id'}
+    );
+    if(!$r) {
+      die sprintf(
+        "Could not remove players from clan (%s)\n", database->errstr()
+      );
+    }
+
+  #--- delete clan
+
+    $r = database->do(
+      'DELETE FROM clans WHERE clans_i = ?', undef, $plr->{'clan_id'}
+    );
+
+  #--- handle failure
+
+  } catch {
+    chomp($@);
+    database->rollback();
+    return "Could not disband clan ($@)";
+  }
+
+  #--- commit transaction
+
+  database->commit();
+  return [];
+}
+
+
+#=============================================================================
 # Get clan info listing for specified clan or all clans. The result is
 # returned as hashref of following structure:
 #
@@ -811,6 +877,7 @@ sub clan_get_info
 # GET  /resign_admin      ... resign admin rights
 # GET  /clan/<clan>       ... clan info page
 # GET  /kick/<plr>        ... kick player out of a clan
+# GET  /disband           ... disband clan
 
 
 #=============================================================================
@@ -1625,6 +1692,30 @@ get '/clan_revoke/:player' => sub {
 
   redirect "/clan/$clan";
 
+};
+
+
+#=============================================================================
+# Disband the player's clan
+#=============================================================================
+
+get '/disband' => sub {
+
+  #--- only for logged in users
+
+  my $name = session('logname');
+  if(!$name) { return "Unauthenticated!"; }
+
+  #--- disband clan
+
+  my $r = clan_disband($name);
+  if(!ref($r)) {
+    return $r;
+  }
+
+  #--- finish
+
+  redirect '/player';
 };
 
 

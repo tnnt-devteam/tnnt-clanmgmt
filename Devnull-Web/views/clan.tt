@@ -51,6 +51,7 @@
   [% IF clan.invites.size %]
   <li><a href="/clan_revoke">Revoke all invitations</a></li>
   [% END %]
+  <li><a href="/disband">Disband the clan</a></li>
 </ul>
 [% END %]
 
