@@ -41,11 +41,14 @@ sub plr_authenticate
   #--- authenticate
 
   if($name && $pwd) {
-    my $sth = database->prepare('SELECT pwd FROM players WHERE name = ?');
+    my $sth = database('dgl')->prepare(
+      'SELECT password FROM dglusers WHERE username = ?'
+    );
     my $r = $sth->execute($name);
     if(!$r) { return "Failed to query database"; }
     my ($pw_db) = $sth->fetchrow_array();
-    if($pw_db eq $pwd) {
+    my $salt = substr($pw_db, 0, 2);
+    if(crypt($pwd, $salt) eq $pw_db) {
       return [];
     } else {
       return "Wrong player name or password";
@@ -79,7 +82,7 @@ sub plr_register
     undef, $name, $pwd
   );
   if(!$r) {
-    my $err = database->errstr();
+    my $err = database('clandb')->errstr();
     if($err =~ /^UNIQUE constraint failed/) {
       return "Player name '$name' already exists, please choose different name";
     } else {
@@ -103,12 +106,12 @@ sub plr_change_password
 
   #--- perform password change
 
-  my $r = database->do(
+  my $r = database('clandb')->do(
     'UPDATE players SET pwd = ? WHERE name = ?', undef, $pw, $name
   );
   if(!$r) {
     return sprintf(
-      'Failed to update password for %s (%s)', $name, database->errstr()
+      'Failed to update password for %s (%s)', $name, database('clandb')->errstr()
     );
   }
 
@@ -145,7 +148,7 @@ sub plr_info
 
   #--- get the info
 
-  my $sth = database->prepare(
+  my $sth = database('clandb')->prepare(
     'SELECT c.name AS clan_name, p.clan_admin AS clan_admin, '
     . 'p.clans_i AS clan_id, p.players_i '
     . 'FROM players p LEFT JOIN clans c '
@@ -216,7 +219,7 @@ sub plr_start_clan
 
   #--- start transaction
 
-  my $r = database->begin_work();
+  my $r = database('clandb')->begin_work();
   if(!$r) { return 'Failed to start database transaction'; }
 
   my $clans_i;
@@ -224,21 +227,21 @@ sub plr_start_clan
 
   #--- create new clan
 
-    $r = database->do(
+    $r = database('clandb')->do(
       'INSERT INTO clans ( name ) VALUES ( ? )',
       undef, $clan_name
     );
     if(!$r) {
-      if(database->errstr() =~ /^UNIQUE constraint failed/) {
+      if(database('clandb')->errstr() =~ /^UNIQUE constraint failed/) {
         die "The clan '$clan_name' already exists, please choose different name\n";
       } else {
-        die sprintf("Failed to create a new clan (%s)\n", database->errstr());
+        die sprintf("Failed to create a new clan (%s)\n", database('clandb')->errstr());
       }
     }
 
   #--- get the clan's id
 
-    my $sth = database->prepare(
+    my $sth = database('clandb')->prepare(
       'SELECT clans_i FROM clans WHERE name = ?'
     );
     if(!ref($sth)) { die "Failed to get db query handle\n"; }
@@ -249,7 +252,7 @@ sub plr_start_clan
 
   #--- make the player member and admin
 
-    $r = database->do(
+    $r = database('clandb')->do(
       'UPDATE players SET clan_admin = 1, clans_i = ? WHERE name = ?',
       undef, $clans_i, $player_name
     );
@@ -261,13 +264,13 @@ sub plr_start_clan
 
   catch {
     chomp($@);
-    database->rollback;
+    database('clandb')->rollback;
     return $@;
   }
 
   #--- commit transaction
 
-  database->commit();
+  database('clandb')->commit();
   return { clan_id => $clans_i };
 }
 
@@ -287,7 +290,7 @@ sub plr_leave_clan
 
   #--- start transaction
 
-  my $r = database->begin_work();
+  my $r = database('clandb')->begin_work();
   if(!$r) { return "Failed to start transaction"; }
 
   try {
@@ -301,7 +304,7 @@ sub plr_leave_clan
 
   #--- leave clan
 
-    $r = database->do(
+    $r = database('clandb')->do(
       'UPDATE players SET clans_i = NULL, clan_admin = 0 WHERE name = ?',
       undef, $name
     );
@@ -309,7 +312,7 @@ sub plr_leave_clan
 
   #--- drop all your invitations
 
-    $r = database->do(
+    $r = database('clandb')->do(
       'DELETE FROM invites WHERE invitor = ?', undef, $plr->{'players_i'}
     );
     if(!$r) {
@@ -318,14 +321,14 @@ sub plr_leave_clan
 
   #--- delete the clan if no more users remain
 
-    my $sth = database->prepare(
+    my $sth = database('clandb')->prepare(
       'SELECT count(*) FROM players WHERE clans_i = ?'
     );
     $r = $sth->execute($clan_id);
     die "Failed to query database\n" if !$r;
     my ($remaining_cnt) = $sth->fetchrow_array();
     if($remaining_cnt == 0) {
-      $r = database->do(
+      $r = database('clandb')->do(
         'DELETE FROM clans WHERE clans_i = ?',
         undef, $clan_id
       );
@@ -334,13 +337,13 @@ sub plr_leave_clan
 
   } catch {
     chomp($@);
-    database->rollback();
+    database('clandb')->rollback();
     return "Could not leave the clan ($@)";
   }
 
   #--- commit transaction
 
-  database->commit();
+  database('clandb')->commit();
   return [];
 }
 
@@ -370,7 +373,7 @@ sub plr_search
     $qry .= ' AND ( p.clans_i <> ? OR p.clans_i IS NULL )';
     push(@args, $exclude_clan_id);
   }
-  my $sth = database->prepare($qry);
+  my $sth = database('clandb')->prepare($qry);
   if(!ref($sth)) { return "Failed to get database handle"; }
   my $r = $sth->execute(@args);
   if(!$r) {
@@ -411,7 +414,7 @@ sub plr_invite
 
   #--- redundant invitation
 
-  my $sth = database->prepare(
+  my $sth = database('clandb')->prepare(
     'SELECT count(*) FROM invites WHERE invitor = ? AND invitee = ?'
   );
   if(!ref($sth)) { return "Failed to get database handle"; }
@@ -424,7 +427,7 @@ sub plr_invite
 
   #--- create new invitation
 
-  $r = database->do(
+  $r = database('clandb')->do(
     'INSERT INTO invites ( invitor, invitee ) VALUES ( ?, ? )', undef,
     $plr_invitor->{'players_i'}, $plr_invitee->{'players_i'}
   );
@@ -455,7 +458,7 @@ sub plr_get_invitations
   #--- list of invites the player has issued
 
   my @my_invitees;
-  my $sth = database->prepare(
+  my $sth = database('clandb')->prepare(
     'SELECT name '
     . 'FROM invites LEFT JOIN players ON players_i = invitee '
     . 'WHERE invitor = ?'
@@ -469,7 +472,7 @@ sub plr_get_invitations
   #--- list of invites waiting for the player
 
   my @my_invites;
-  $sth = database->prepare(
+  $sth = database('clandb')->prepare(
     'SELECT p.name AS player, c.name AS clan '
     . 'FROM invites i LEFT JOIN players p ON players_i = invitor '
     . 'LEFT JOIN clans c USING ( clans_i ) '
@@ -516,10 +519,10 @@ sub plr_revoke_invitations
     $qry .= ' AND invitee = ?';
     push(@args, $invitee_info->{'players_i'});
   }
-  my $r = database->do($qry, undef, @args);
+  my $r = database('clandb')->do($qry, undef, @args);
   if(!$r) {
     return
-      sprintf "Failed to delete the invitation() (%s)", database->errstr();
+      sprintf "Failed to delete the invitation() (%s)", database('clandb')->errstr();
   }
 
   #--- finish successfully
@@ -555,9 +558,9 @@ sub clan_revoke_invitations
     push(@arg, $invitee);
   }
   $qry .= ')';
-  my $r = database->do($qry, undef, @arg);
+  my $r = database('clandb')->do($qry, undef, @arg);
   if(!$r) {
-    return sprintf 'Failed to drop invitations (%s)', database->errstr();
+    return sprintf 'Failed to drop invitations (%s)', database('clandb')->errstr();
   }
 
   #--- finish successfully
@@ -597,10 +600,10 @@ sub plr_decline_invitation
     $qry .= ' AND invitor = ?';
     push(@args, $invitor_info->{'players_i'});
   }
-  my $r = database->do($qry, undef, @args);
+  my $r = database('clandb')->do($qry, undef, @args);
   if(!$r) {
     return
-      sprintf "Failed to delete the invitation(s) (%s)", database->errstr();
+      sprintf "Failed to delete the invitation(s) (%s)", database('clandb')->errstr();
   }
 
   #--- finish successfully
@@ -636,14 +639,14 @@ sub plr_accept_invitation
 
   #--- begin transaction
 
-  my $r = database->begin_work();
+  my $r = database('clandb')->begin_work();
   if(!$r) { return "Could not start database transaction"; }
 
   try {
 
   #--- update player record to include clan id
 
-    my $r = database->do(
+    my $r = database('clandb')->do(
       'UPDATE players SET clans_i = ? WHERE players_i = ?', undef,
       $invitor_info->{'clan_id'}, $plr_info->{'players_i'}
     );
@@ -651,7 +654,7 @@ sub plr_accept_invitation
 
   #--- find all invitations for the same clan
 
-    my $sth = database->prepare(
+    my $sth = database('clandb')->prepare(
       'SELECT invitor, invitee ' .
       'FROM invites ' .
       'LEFT JOIN players ON invitor = players_i ' .
@@ -659,7 +662,7 @@ sub plr_accept_invitation
       'WHERE invitee = ? AND clans_i = ?'
     );
     if(!ref($sth)) {
-      die sprintf("Failed to get query handle (%s)\n", database->errstr());
+      die sprintf("Failed to get query handle (%s)\n", database('clandb')->errstr());
     }
     $r = $sth->execute($plr_info->{'players_i'},$invitor_info->{'clan_id'});
     if(!$r) { die sprint("Failed to query database (%s)\n", $sth->errstr()); }
@@ -671,12 +674,12 @@ sub plr_accept_invitation
   #--- delete all invitations matched in previous step
 
     for my $row (@$invites) {
-      $r = database->do(
+      $r = database('clandb')->do(
         'DELETE FROM invites WHERE invitor = ? AND invitee = ?', undef,
         @$row
       );
       if(!$r) {
-        die sprintf("Failed to delete invitation (%s)\n", database->errstr());
+        die sprintf("Failed to delete invitation (%s)\n", database('clandb')->errstr());
       }
     }
 
@@ -684,13 +687,13 @@ sub plr_accept_invitation
 
   } catch {
     chomp($@);
-    database->rollback();
+    database('clandb')->rollback();
     return "Could not accept clan invitation ($@)";
   }
 
   #--- commit transaction
 
-  database->commit();
+  database('clandb')->commit();
   return [];
 }
 
@@ -716,7 +719,7 @@ sub clan_disband
 
   #--- begin transaction
 
-  my $r = database->begin_work();
+  my $r = database('clandb')->begin_work();
   if(!$r) { return "Could not start database transaction"; }
 
   try {
@@ -730,19 +733,19 @@ sub clan_disband
 
   #--- remove all players and clear their admin flag
 
-    $r = database->do(
+    $r = database('clandb')->do(
       'UPDATE players SET clans_i = NULL, clan_admin = 0 WHERE clans_i = ?',
       undef, $plr->{'clan_id'}
     );
     if(!$r) {
       die sprintf(
-        "Could not remove players from clan (%s)\n", database->errstr()
+        "Could not remove players from clan (%s)\n", database('clandb')->errstr()
       );
     }
 
   #--- delete clan
 
-    $r = database->do(
+    $r = database('clandb')->do(
       'DELETE FROM clans WHERE clans_i = ?', undef, $plr->{'clan_id'}
     );
 
@@ -750,13 +753,13 @@ sub clan_disband
 
   } catch {
     chomp($@);
-    database->rollback();
+    database('clandb')->rollback();
     return "Could not disband clan ($@)";
   }
 
   #--- commit transaction
 
-  database->commit();
+  database('clandb')->commit();
   return [];
 }
 
@@ -791,7 +794,7 @@ sub clan_get_info
 
   #--- query the database for clans/players
 
-  my $sth = database->prepare(
+  my $sth = database('clandb')->prepare(
     'SELECT c.name AS clan, clans_i, p.name AS player, players_i, clan_admin ' .
     'FROM clans c LEFT JOIN players p USING (clans_i)' .
     ($clan ? ' WHERE c.name = ?' : '')
@@ -813,7 +816,7 @@ sub clan_get_info
 
   #--- query the database for outstanding invitations
 
-  $sth = database->prepare(
+  $sth = database('clandb')->prepare(
     'SELECT p1.name AS invitor, p2.name AS invitee, c.name AS clan '
     . 'FROM invites LEFT JOIN players p1 ON invitor = p1.players_i '
     . 'LEFT JOIN players p2 ON invitee = p2.players_i '
@@ -822,7 +825,7 @@ sub clan_get_info
     . ' ORDER BY creat_when'
   );
   if(!ref($sth)) {
-    return sprintf "Could not get query handle (%s)\n", database->errstr();
+    return sprintf "Could not get query handle (%s)\n", database('clandb')->errstr();
   }
   $r = $sth->execute($clan ? ($clan) : ());
   if(!$r) {
@@ -1383,7 +1386,7 @@ get '/make_admin/:player' => sub {
 
   #--- give admin rights
 
-  my $r = database->do(
+  my $r = database('clandb')->do(
     'UPDATE players SET clan_admin = 1 WHERE players_i = ?', undef,
     $grantee_info->{'players_i'}
   );
@@ -1430,14 +1433,14 @@ get '/resign_admin' => sub {
 
   #--- start database transaction
 
-  my $r = database->begin_work();
+  my $r = database('clandb')->begin_work();
   if(!$r) { return "Could not start database transaction"; }
 
   try {
 
   #--- perform resignation
 
-    $r = database->do(
+    $r = database('clandb')->do(
       'UPDATE players SET clan_admin = 0 WHERE players_i = ?', undef,
       $plr->{'players_i'}
     );
@@ -1447,7 +1450,7 @@ get '/resign_admin' => sub {
 
   #--- drop all given invites
 
-    $r = database->do(
+    $r = database('clandb')->do(
       'DELETE FROM invites WHERE invitor =?', undef,
       $plr->{'players_i'}
     );
@@ -1458,13 +1461,13 @@ get '/resign_admin' => sub {
   #--- abort transaction
 
   } catch {
-    database->rollback();
+    database('clandb')->rollback();
     return "Failed to resign admin role ($@)";
   }
 
   #--- finish successfully
 
-  database->commit();
+  database('clandb')->commit();
   redirect $rt || '/player';
 
 };
@@ -1611,13 +1614,13 @@ get '/kick/:player' => sub {
 
   #--- kick player
 
-  my $r = database->do(
+  my $r = database('clandb')->do(
     'UPDATE players SET clans_i = NULL, clan_admin = 0 WHERE players_i = ?',
     undef, $target_info->{'players_i'}
   );
   if(!$r) {
     return sprintf(
-      'Failed to kick player %s (%s)', $target, database->errstr()
+      'Failed to kick player %s (%s)', $target, database('clandb')->errstr()
     );
   }
 

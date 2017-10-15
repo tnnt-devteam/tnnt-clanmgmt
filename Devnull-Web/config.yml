@@ -65,7 +65,12 @@ engines:
 
 plugins:
   Database:
-    driver: SQLite
-    database: devnull-web.sqlite
-    on_connect_do: [ "PRAGMA foreign_keys = ON" ]
-
+    connections:
+      clandb:
+        driver: SQLite
+        database: devnull-web.sqlite
+        on_connect_do: [ "PRAGMA foreign_keys = ON" ]
+      dgl:
+        driver: SQLite
+        database: dgl.sqlite
+        on_connect_do: [ "PRAGMA foreign_keys = ON" ]
