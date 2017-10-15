@@ -12,7 +12,6 @@ CREATE TABLE clans (
 CREATE TABLE players (
   players_i INTEGER PRIMARY KEY,
   name TEXT NOT NULL UNIQUE,
-  pwd TEXT NOT NULL,
   clans_i INT,
   clan_admin INT NOT NULL DEFAULT 0,
   FOREIGN KEY (clans_i) REFERENCES clans(clans_i)

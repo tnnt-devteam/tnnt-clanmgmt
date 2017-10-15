@@ -62,6 +62,52 @@ sub plr_authenticate
 
 
 #=============================================================================
+# Tries to find whether player account exists and creates a new one if it does
+# not. Returns empty arrayref on success, otherwise error message.
+#=============================================================================
+
+sub plr_new
+{
+  #--- arguments
+
+  my ($name) = @_;
+
+  #--- other variables
+
+  my $players_i;
+
+  #--- try to find the player
+
+  my $dbh = database('clandb');
+  if(!ref($dbh)) {
+    return 'Failed to connect to database';
+  }
+  my $sth = $dbh->prepare('SELECT players_i FROM players WHERE name = ?');
+  my $r = $sth->execute($name);
+  if(!$r) {
+    return sprintf('Failed to query database (%s)', $sth->errstr());
+  } else {
+    ($players_i) = $sth->fetchrow_array();
+    if(!defined $players_i) {
+
+  #--- player not found, create new account
+
+      $r = $dbh->do(
+        'INSERT INTO players ( name ) VALUES ( ? )', undef, $name
+      );
+      if(!$r) {
+        return sprintf('Failed to initialize account (%s)', $dbh->errstr());
+      } else {
+        return [];
+      }
+    } else {
+      return [];
+    }
+  }
+}
+
+
+#=============================================================================
 # Inserts new player into backend database. Returns ref on success, error text
 # otherwise.
 #=============================================================================
@@ -923,11 +969,21 @@ post '/login' => sub {
   my $name = body_parameters->get('reg_name');
   my $pw_web = body_parameters->get('reg_pwd1');
 
+  #--- authenticate against dgamelaunch user database
+
   my $r = plr_authenticate($name, $pw_web);
   if(ref($r)) {
     session logname => $name;
-    redirect '/';
+
+  #--- if this is a first login, create the user
+
+    $r = plr_new($name);
+    if(ref($r)) {
+      redirect '/';
+    }
   }
+
+  #--- fail exit
 
   template 'login', {
     title => 'Devnull Log in',
