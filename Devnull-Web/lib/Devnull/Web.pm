@@ -141,33 +141,6 @@ sub plr_register
 
 
 #=============================================================================
-# Change player's password. Returns ref on success, error text otherwise.
-#=============================================================================
-
-sub plr_change_password
-{
-  #--- arguments
-
-  my ($name, $pw) = @_;
-
-  #--- perform password change
-
-  my $r = database('clandb')->do(
-    'UPDATE players SET pwd = ? WHERE name = ?', undef, $pw, $name
-  );
-  if(!$r) {
-    return sprintf(
-      'Failed to update password for %s (%s)', $name, database('clandb')->errstr()
-    );
-  }
-
-  #--- finish
-
-  return [];
-}
-
-
-#=============================================================================
 # Returns hashref with player info retrieved from backend database in
 # following keys:
 #
@@ -907,8 +880,6 @@ sub clan_get_info
 # POST /login             ... log in
 # GET  /register          ... display new player registration page
 # POST /register          ... perform new player registration
-# GET  /changepw          ... diplay password change form
-# POST /changepw          ... change password
 # GET  /player            ... player personal administration page
 # GET  /leave_clan        ... leave current clan
 # any  /start_clan        ... starts new clan with the player as admin
@@ -1043,86 +1014,6 @@ post '/register' => sub {
 
   return template 'register', $response;
 };
-
-#=============================================================================
-#=== change password =========================================================
-#=============================================================================
-
-get '/changepw' => sub {
-
-  #--- this is only for authenticated users, boot anyone who is not logged in
-
-  my $name = session('logname');
-  if(!$name) { return "Unauthenticated!"; }
-
-  #--- show pw change form
-
-  template 'changepw', { title => 'Devnull / Change Password' };
-};
-
-post '/changepw' => sub {
-
-  my $response = { title => 'Devnull / Change Password' };
-
-  #--- this is only for authenticated users, boot anyone who is not logged in
-
-  my $name = session('logname');
-  if(!$name) { return "Unauthenticated!"; }
-
-  #--- get the form fields
-
-  my ($pw0, $pw1, $pw2) = (
-    body_parameters->get('chg_pwd0'),
-    body_parameters->get('chg_pwd1'),
-    body_parameters->get('chg_pwd2')
-  );
-
-  #--- try block
-
-  try {
-
-  #--- all three fields must be filled in
-
-    if(!$pw0 || !$pw1 || !$pw2) {
-      die "Please fill in all three fields\n";
-    }
-
-  #--- check the old password
-
-    my $r = plr_authenticate($name, $pw0);
-    if(!ref($r)) {
-      die "The old password is incorrect\n";
-    }
-
-  #--- non-matching new passwords
-
-    if($pw2 ne $pw2) {
-      die "The new passwords do not match\n";
-    }
-
-  #--- password is too short
-
-    if(length($pw1) < 6) {
-      die "Please use longer password (at least 6 characters)\n";
-    }
-
-  #--- change password
-
-    $r = plr_change_password($name, $pw1);
-    if(!ref($r)) {
-      die "Failed to change password\n";
-    }
-    $response->{'success'} = 'Your password was changed';
-
-  #--- handle failure
-
-  } catch {
-    chomp($response->{'errmsg'} = $@);
-  }
-
-  return template 'changepw', $response;
-};
-
 
 #=============================================================================
 #=== player admin page =======================================================
