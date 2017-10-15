@@ -108,39 +108,6 @@ sub plr_new
 
 
 #=============================================================================
-# Inserts new player into backend database. Returns ref on success, error text
-# otherwise.
-#=============================================================================
-
-sub plr_register
-{
-  #--- arguments
-
-  my (
-    my $name,
-    my $pwd
-  ) = @_;
-
-  #--- perform registration
-
-  my $r = database->do(
-    'INSERT INTO players ( name, pwd ) VALUES ( ?, ? )',
-    undef, $name, $pwd
-  );
-  if(!$r) {
-    my $err = database('clandb')->errstr();
-    if($err =~ /^UNIQUE constraint failed/) {
-      return "Player name '$name' already exists, please choose different name";
-    } else {
-      return "Failed to create new player";
-    }
-  }
-
-  return [];
-}
-
-
-#=============================================================================
 # Returns hashref with player info retrieved from backend database in
 # following keys:
 #
@@ -878,8 +845,6 @@ sub clan_get_info
 # GET  /logout            ... log out
 # GET  /login             ... display log in page
 # POST /login             ... log in
-# GET  /register          ... display new player registration page
-# POST /register          ... perform new player registration
 # GET  /player            ... player personal administration page
 # GET  /leave_clan        ... leave current clan
 # any  /start_clan        ... starts new clan with the player as admin
@@ -960,59 +925,6 @@ post '/login' => sub {
     title => 'Devnull Log in',
     errmsg => "Cannot login: $r"
   };
-};
-
-#=============================================================================
-#=== player registration =====================================================
-#=============================================================================
-
-get '/register' => sub {
-  template 'register', {
-    title => 'Devnull New User Registration'
-  };
-};
-
-post '/register' => sub {
-  my $response = { title => 'Devnull New User Registration' };
-
-  try {
-    my $name = body_parameters->get('reg_name');
-    my $pw1 = body_parameters->get('reg_pwd1');
-    my $pw2 = body_parameters->get('reg_pwd2');
-
-    #--- one or more inputs not filled in
-
-    if(!$name || !$pw1 || !$pw2) {
-      die "Please fill in all three fields\n";
-    }
-
-    #--- non-matching passwords
-
-    if($pw1 ne $pw2) {
-      die "The passwords do not match\n";
-    }
-
-    #--- password is too short
-
-    if(length($pw1) < 6) {
-      die "Please use longer password (at least 6 characters)\n";
-    }
-
-    #--- create new player
-
-    my $r = plr_register($name, $pw1);
-    if(ref($r)) {
-      session logname => $name;
-      redirect '/';
-    } else {
-      die "Failed to create new player\n";
-    }
-
-  } catch {
-    chomp($response->{'errmsg'} = $@);
-  }
-
-  return template 'register', $response;
 };
 
 #=============================================================================

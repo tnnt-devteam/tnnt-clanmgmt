@@ -25,7 +25,6 @@
 
 <li><a href="logout">Log out</a></li>
 [% ELSE %]
-<li><a href="register">Register new user</a></li>
 <li><a href="login">Log in as existing user</a></li>
 [% END %]
 </ul>
