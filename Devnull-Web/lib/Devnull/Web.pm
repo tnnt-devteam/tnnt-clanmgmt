@@ -1,10 +1,9 @@
 #=============================================================================
-# /DEV/NULL/NETHACK TOURNAMENT WEBSITE
-# """"""""""""""""""""""""""""""""""""
+# /DEV/NULL/NETHACK TRIBUTE CLAN MANAGEMENT
+# """""""""""""""""""""""""""""""""""""""""
 # (c) 2017 Borek Lupomesky <borek@lupomesky.cz>
 #
-# Reimplementation if /dev/null/nethack website code to replace the original
-# Krystal one. Please read the README for installation and deployment info.
+# Clan management for /dev/null/nethack Tribute tournament.
 #=============================================================================
 
 package Devnull::Web;
