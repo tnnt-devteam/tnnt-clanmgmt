@@ -1,16 +1,11 @@
-# /DEV/NULL/NETHACK WEBSITE REIMPLEMENTATION
+# /DEV/NULL/NETHACK TRIBUTE CLAN MANAGEMENT
 
-Reimplementation od /dev/null/nethack tournament's central website. **Work in
-progress, not yet functional**. This code is written in an attempt to hedge
-against Krystal not appearing again to run /dev/null/nethack 2017.
-
-The game server setup was replicated and updated by
-[Tangles](https://github.com/NHtangles) and is available on github
-[here](https://github.com/NHTangles/devnull-gameserver). The problem is
-that the control server code that links the game servers together and
-the public facing website was never made public. Therefore if we want to
-make sure /dev/null/nethack 2017 happens even in the case Krystal won't
-run it as usual we need to rewrite this part.
+This code started as an attempt at reimplementation of /dev/null/nethack's
+central server code. With the tournament
+[retirement](https://twitter.com/devnull_nethack/status/908441635746279424)
+by Krystal, this never came to fruition. Instead, this code was coopted
+for clan management of the replacement tournament -- /dev/null/nethack
+Tribute. The tag 'pre-tribute' marks the last commit before this event.
 
 ## ARCHITECTURE
 
