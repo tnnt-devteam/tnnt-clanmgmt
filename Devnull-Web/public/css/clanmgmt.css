@@ -1,0 +1,131 @@
+/*===========================================================================*/
+/*=== CLAN MANAGEMENT =======================================================*/
+/*===========================================================================*/
+
+/* please note that the overarching devnull tribute web CSS is loaded as
+ * well, this is not a standalone sheet */
+
+
+/*--- some generic tweaks -------------------------------------------------*/
+
+em {
+  color: #0f0;
+  font-style: normal;
+}
+
+
+/*--- form text input -------------------------------------------------------
+
+style for all form text inputs */
+
+input {
+  font-family: inherit;
+  font-size: 166%;
+  color: #0f0;
+  border: 2pt solid #0a0;
+  background-color: black;
+  padding: 0.3em;
+  margin: 0.3em 0;
+}
+
+input:focus {
+  border: 2pt solid #0f0;
+}
+
+input:required {
+  outline: none;
+  box-shadow: none;
+}
+
+/*--- form button -----------------------------------------------------------
+
+style for form buttons */
+
+button {
+  color: #0a0;
+  font-family: inherit;
+  font-weight: bold;
+  font-size: 133%;
+  background-color: #030;
+  border: none;
+  text-transform: uppercase;
+  padding: 0.3em 0.5em;
+  margin: 1em 0;
+  margin-right: 0.5em;
+}
+
+button:hover {
+  color: #0f0;
+  cursor: pointer;
+}
+
+/*--- button-like link ------------------------------------------------------
+
+links (A tags) that look exactly like form buttons defined above; these are
+used when desired action is invoked by using GET request */
+
+a.button {
+  color: #0a0;
+  font-family: inherit;
+  font-weight: bold;
+  font-size: 100%;
+  background-color: #030;
+  border: none;
+  text-transform: uppercase;
+  padding: 0.3em 0.5em;
+  margin: 1em 0;
+  margin-right: 0.5em;
+}
+
+a.button:hover {
+  text-decoration: none;
+  color: #0f0;
+}
+
+/*--- login page ------------------------------------------------------------
+
+this is the index page of the clan management app that is show when
+user is not yet logged in */
+
+div.loginhint {
+  width: 30em;
+}
+
+div.loginhint p.main {
+  font-size: 166%;
+  font-weight: bold;
+  text-align: center;
+}
+
+div.loginhint p.explain {
+  font-size: 133%;
+  color: #0a0;
+}
+
+/*--- player info -----------------------------------------------------------
+
+this is the index page of the clan management app that is show when
+user is logged in */
+
+section.plrinfo {
+  color: #0a0;
+  text-align: center;
+  margin: 2em;
+}
+
+section.plrinfo div {
+  margin: 0.5em;
+}
+
+section.plrinfo div:first-child {
+  font-size: 166%;
+}
+
+section.plrinfo div:nth-child(2) {
+  font-size: 133%;
+}
+
+section.plrinfo span.plrhilite {
+  color: #0f0;
+  font-weight: bold;
+}

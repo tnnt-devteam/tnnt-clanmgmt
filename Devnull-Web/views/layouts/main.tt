@@ -4,7 +4,8 @@
 
 <head>
   <title>[% title %]</title>
-  <link rel="stylesheet" href="[% uri_base %]/css/default.css">
+  <link rel="stylesheet" href="../main.css">
+  <link rel="stylesheet" href="css/clanmgmt.css">
 </head>
 
 <body>

@@ -47,6 +47,9 @@ sub plr_authenticate
     my $r = $sth->execute($name);
     if(!$r) { return "Failed to query database"; }
     my ($pw_db) = $sth->fetchrow_array();
+    if(!defined($pw_db)) {
+      return "Account '$name' does not exist";
+    }
     my $salt = substr($pw_db, 0, 2);
     if(crypt($pwd, $salt) eq $pw_db) {
       return [];
@@ -843,8 +846,6 @@ sub clan_get_info
 #
 # GET  /                  ... front page
 # GET  /logout            ... log out
-# GET  /login             ... display log in page
-# POST /login             ... log in
 # GET  /player            ... player personal administration page
 # GET  /leave_clan        ... leave current clan
 # any  /start_clan        ... starts new clan with the player as admin
@@ -868,19 +869,83 @@ sub clan_get_info
 #=== front page ==============================================================
 #=============================================================================
 
-get '/' => sub {
-  my $data = { title => 'Devnull Front Page' };
+any [ 'get', 'post' ] => '/' => sub {
+
+  my %data;
+
+  #--- attempt to get login name from session cookie
+
   my $logname = session('logname');
-  if($logname) {
-    my $plr = plr_info($logname);
-    if(ref($plr)) {
-      $data->{'clan'} = $plr->{'clan_name'};
-      $data->{'admin'} = $plr->{'clan_admin'};
+
+  #---------------------------------------------------------------------------
+
+  try {
+
+  #--- NOT LOGGED IN - request is GET
+
+    if(!$logname && request->is_get) {
+      return template 'index', {
+        'title' => 'Devnull Login'
+      };
     }
-    $data->{'logname'} = $logname;
+
+  #--- NOT LOGGED IN - request is POST
+
+    if(!$logname) {
+      my $name = body_parameters->get('reg_name');
+      my $pw_web = body_parameters->get('reg_pwd1');
+
+  #--- authenticate against dgamelaunch user database
+
+      my $r = plr_authenticate($name, $pw_web);
+      if(!ref($r)) {
+        $data{'errmsg'} = $r;
+        die "Cannot login ($r)\n";
+      }
+
+      $logname = $name;
+      session logname => $name;
+
+  #--- if this is a first login, create the user
+
+      $r = plr_new($name);
+      if(!ref($r)) {
+        $data{'errmsg'} = $r;
+        die "Could not create new user ($r)\n";
+      }
+    }
+
+  #--- now get info about the player
+
+    my $plr = plr_info($logname,1 );
+    if(ref($plr)) {
+      $data{'clan'} = $plr->{'clan_name'};
+      $data{'admin'} = $plr->{'clan_admin'};
+      $data{'sole_admin'} = $plr->{'sole_admin'};
+      $data{'can_leave'} = $plr->{'can_leave'};
+    }
+
+    my $invinfo = plr_get_invitations($logname);
+    $data{'invinfo'} = $invinfo;
+
+    $data{'logname'} = $logname;
+    $data{'title'} = 'Devnull Clan Management';
+    return template 'index', \%data;
+
+  #---------------------------------------------------------------------------
+
   }
-  template 'index', $data;
+
+  #--- handle errors
+
+  catch {
+    template 'index', {
+      title => 'Devnull Login Failed',
+      errmsg => "$@"
+    };
+  }
 };
+
 
 #=============================================================================
 #=== logout ==================================================================
@@ -889,42 +954,6 @@ get '/' => sub {
 get '/logout' => sub {
   app->destroy_session();
   redirect '/';
-};
-
-#=============================================================================
-#=== login ===================================================================
-#=============================================================================
-
-get '/login' => sub {
-  template 'login', {
-    title => 'Devnull Log in'
-  };
-};
-
-post '/login' => sub {
-  my $name = body_parameters->get('reg_name');
-  my $pw_web = body_parameters->get('reg_pwd1');
-
-  #--- authenticate against dgamelaunch user database
-
-  my $r = plr_authenticate($name, $pw_web);
-  if(ref($r)) {
-    session logname => $name;
-
-  #--- if this is a first login, create the user
-
-    $r = plr_new($name);
-    if(ref($r)) {
-      redirect '/';
-    }
-  }
-
-  #--- fail exit
-
-  template 'login', {
-    title => 'Devnull Log in',
-    errmsg => "Cannot login: $r"
-  };
 };
 
 #=============================================================================

@@ -1,30 +1,95 @@
-<h1>Devnull Front Page</h1>
+<div class="graybox">
+<h1 class="bighead">/DEV/NULL/NETHACK TRIBUTE TOURNAMENT 2017</h1>
+</div>
 
-</p>
+<hr>
+
+<div class="menu">
+  <a href="../" class="menu">OVERVIEW</a>
+  <a href="../trophies.html" class="menu">TROPHIES</a>
+  <a href="../clans.html" class="menu">CLANS</a>
+  <a href="../players.html" class="menu">PLAYERS</a>
+  <a href="../about.html" class="menu">ABOUT</a>
+</div>
+
+<hr>
+
+  [%# ====================================================================
+      === PLAYER INFORMATION =============================================
+      ==================================================================== %]
+
 [% IF logname %]
-  Logged in as:
-  <b>[% logname %]</b>
-  [% IF clan %]
-  @ <b>[% clan %]</b>
-  [% END %]
-[% ELSE %]
-  Not logged in
-[% END %]
-</p>
-
-
-<ul>
-[% IF logname %]
-<li><a href="player">Go to your settings</a></li>
+  <section class="plrinfo">
+    <div>Logged in as <span class="plrhilite">[% logname %]</span></div>
+    <div><a class="button" href="logout">LOGOUT</a></div>
+  </section>
 
   [% IF clan %]
-  <li><a href="clan/[% clan %]">
-  [% IF admin %]Manage[% ELSE %]View[% END %] your clan</a>
-  </li>
+    <section class="plrinfo">
+      <div>
+        You are a member of clan <span class="plrhilite">[% clan %]</span>
+      </div>
+    </section>
+  [% ELSE %]
+    <section class="plrinfo">
+      <div>You are not member of any clan</div>
+      <div><a class="button" href="">START CLAN</a></div>
+    </section>
   [% END %]
 
-<li><a href="logout">Log out</a></li>
 [% ELSE %]
-<li><a href="login">Log in as existing user</a></li>
+
+  [%# ====================================================================
+      === LOGIN FORM =====================================================
+      ==================================================================== %]
+
+  [% IF errmsg %]
+
+  <div class="flexrow">
+    <div class="loginhint">
+      <p class="main">Something went wrong!</p>
+      <p class="explain">
+        Sorry, for some reason we could not
+        log you in. This is the error message
+        our system returned:
+      </p>
+      <p class="explain">
+        [% errmsg %]
+      </p>
+    </div>
+  </div>
+
+  [% ELSE %]
+
+  <div class="flexrow">
+    <div class="loginhint">
+      <p class="main">Please log in first!</p>
+      <p class="explain">
+        Use your <em>hardfought.org</em> dgamelaunch
+        credentials to access the
+        /dev/null/nethack Tribute tournament
+        clan management page
+      </p>
+    </div>
+  </div>
+
+  [% END %]
+
+  <div class="flexrow">
+    <form method="post">
+      <div>
+        <label for="reg_name">Username</label><br>
+        <input type="text" id="reg_name" name="reg_name" required>
+      </div>
+      <div>
+        <label for="reg_pwd1">Password</label><br>
+        <input type="password" id="reg_pwd1" name="reg_pwd1" required>
+      </div>
+      <div class="buttons">
+        <button name="submit" value="submit" type="submit">Login</button>
+        <button name="reset" value="reset" type="reset">Reset</button>
+      </div>
+    </form>
+  </div>
+
 [% END %]
-</ul>
