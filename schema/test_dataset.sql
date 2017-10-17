@@ -20,18 +20,15 @@ INSERT INTO clans VALUES ( 2, 'clan2' );
 -- player 9 is member of no clan
 -- players 1 and 5 are admins of their respective clans
 
-INSERT INTO players (name,pwd,clans_i,clan_admin ) VALUES ('player1','',1,1);
-INSERT INTO players (name,pwd,clans_i,clan_admin ) VALUES ('player2','',1,0);
-INSERT INTO players (name,pwd,clans_i,clan_admin ) VALUES ('player3','',1,0);
-INSERT INTO players (name,pwd,clans_i,clan_admin ) VALUES ('player4','',1,0);
-INSERT INTO players (name,pwd,clans_i,clan_admin ) VALUES ('player5','',2,1);
-INSERT INTO players (name,pwd,clans_i,clan_admin ) VALUES ('player6','',2,0);
-INSERT INTO players (name,pwd,clans_i,clan_admin ) VALUES ('player7','',2,0);
-INSERT INTO players (name,pwd,clans_i,clan_admin ) VALUES ('player8','',2,0);
-INSERT INTO players (name,pwd,clans_i,clan_admin ) VALUES ('player9','',NULL,0);
-
-UPDATE players
-SET pwd = 'pw';
+INSERT INTO players (name,clans_i,clan_admin ) VALUES ('player1',1,1);
+INSERT INTO players (name,clans_i,clan_admin ) VALUES ('player2',1,0);
+INSERT INTO players (name,clans_i,clan_admin ) VALUES ('player3',1,0);
+INSERT INTO players (name,clans_i,clan_admin ) VALUES ('player4',1,0);
+INSERT INTO players (name,clans_i,clan_admin ) VALUES ('player5',2,1);
+INSERT INTO players (name,clans_i,clan_admin ) VALUES ('player6',2,0);
+INSERT INTO players (name,clans_i,clan_admin ) VALUES ('player7',2,0);
+INSERT INTO players (name,clans_i,clan_admin ) VALUES ('player8',2,0);
+INSERT INTO players (name,clans_i,clan_admin ) VALUES ('player9',NULL,0);
 
 -- create some invites:
 -- player 1 invites player 5,6,9 to clan 1
