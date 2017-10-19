@@ -26,7 +26,6 @@ Install required Perl modules
     perl -MCPAN -e 'install DBD::SQLite'
     perl -MCPAN -e 'install Dancer2'
     perl -MCPAN -e 'install Dancer2::Plugin::Database'
-    perl -MCPAN -e 'install Dancer2::Plugin::Passphrase'
     perl -MCPAN -e 'install Dancer2::Session::Cookie'
 
 Clone the git repository.
