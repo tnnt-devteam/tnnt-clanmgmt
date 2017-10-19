@@ -614,12 +614,18 @@ sub plr_accept_invitation
 
   #--- get info on both players
 
-  my $plr_info = plr_info($name);
+  my $plr_info = plr_info($name, 1);
   if(!ref($plr_info)) { return $plr_info; }
   my $invitor_info;
   if($invitor) {
     $invitor_info = plr_info($invitor);
     if(!ref($invitor_info)) { return $invitor_info; }
+  }
+
+  #--- sole admins cannot leave, they must pass the admin privilege first
+
+  if($plr_info->{'admin'} && $plr_info->{'sole_admin'}) {
+    return 'Sole admins cannot leave';
   }
 
   #--- get invitations list
@@ -847,7 +853,7 @@ sub clan_get_info
 # GET  /                  ... front page
 # GET  /logout            ... log out
 # GET  /leave_clan        ... leave current clan
-# any  /start_clan        ... starts new clan with the player as admin
+# any  /create_clan       ... starts new clan with the player as admin
 # any  /invite            ... display player invitation page
 # GET  /invite/<invitee>  ... invite a player to a clan
 # GET  /revoke/<invitee>  ... revoke an existing invitation
@@ -902,9 +908,6 @@ any [ 'get', 'post' ] => '/' => sub {
         die "Cannot login ($r)\n";
       }
 
-      $logname = $name;
-      session logname => $name;
-
   #--- if this is a first login, create the user
 
       $r = plr_new($name);
@@ -912,11 +915,17 @@ any [ 'get', 'post' ] => '/' => sub {
         $data{'errmsg'} = $r;
         die "Could not create new user ($r)\n";
       }
+
+  #--- create session
+
+      $logname = $name;
+      session logname => $name;
+
     }
 
   #--- now get info about the player
 
-    my $plr = plr_info($logname,1 );
+    my $plr = plr_info($logname, 1);
     if(ref($plr)) {
       $data{'clan'} = $plr->{'clan_name'};
       $data{'admin'} = $plr->{'clan_admin'};
@@ -926,6 +935,13 @@ any [ 'get', 'post' ] => '/' => sub {
 
     my $invinfo = plr_get_invitations($logname);
     $data{'invinfo'} = $invinfo;
+
+    if($data{'clan'}) {
+      my $clan_info = clan_get_info($data{'clan'});
+      if(ref($plr)) {
+        $data{'clan_info'} = $clan_info->{$data{'clan'}};
+      }
+    }
 
     $data{'logname'} = $logname;
     $data{'title'} = 'Devnull Clan Management';
@@ -961,16 +977,12 @@ get '/logout' => sub {
 
 get '/leave_clan' => sub {
 
-  #--- this is only for authenticated users, boot anyone who is not logged in
-
   my $name = session('logname');
-  if(!$name) { return "Unauthenticated!"; }
-
-  #--- leave clan
-
-  my $r = plr_leave_clan($name);
-  if(!ref($r)) { return $r; }
-  redirect '/player';
+  if($name) {
+    plr_leave_clan($name);
+    # FIXME error not handled
+  }
+  redirect '/';
 };
 
 
@@ -984,10 +996,11 @@ any '/create_clan' => sub {
     title => 'Devnull / Start a new clan'
   };
 
-  #--- this is only for authenticated users, boot anyone who is not logged in
+  #--- get login name (if logged in)
 
   my $name = session('logname');
-  if(!$name) { return "Unauthenticated!"; }
+  if(!$name) { redirect '/'; }
+  $data->{'logname'} = $name if $name;
 
   #--- if this is POST request, process the submitted data
 
@@ -1005,7 +1018,7 @@ any '/create_clan' => sub {
     else {
       my $r = plr_start_clan($name, $clan_name);
       if(!ref($r)) {
-        $data->{'errmsg'} = "Failed to start a clan: $r";
+        $data->{'errmsg'} = $r;
       }
     }
 
@@ -1016,7 +1029,7 @@ any '/create_clan' => sub {
   if($data->{'errmsg'} || request->is_get) {
     return template 'clan_create', $data;
   } else {
-    redirect '/player';
+    redirect '/';
   }
 
 };
@@ -1035,7 +1048,11 @@ any '/invite' => sub {
   #--- only for logged in users
 
   my $name = session('logname');
-  if(!$name) { return "Unauthenticated!"; }
+  if(!$name) {
+    redirect '/';
+  }
+
+  $data->{'logname'} = $name;
 
   #--- only for clan admins
 
@@ -1085,7 +1102,7 @@ get '/invite/:invitee' => sub {
   if(!ref($r)) {
     return $r;
   } else {
-    redirect '/clan/' . $plr->{'clan_name'};
+    redirect '/';
   }
 };
 
@@ -1107,7 +1124,7 @@ get '/revoke/:player' => sub {
   my $r = plr_revoke_invitations($name, $invitee);
   if(!ref($r)) { return $r; }
 
-  redirect '/player';
+  redirect '/';
 
 };
 
@@ -1123,7 +1140,7 @@ get '/revoke' => sub {
   my $r = plr_revoke_invitations($name);
   if(!ref($r)) { return $r; }
 
-  redirect '/player';
+  redirect '/';
 
 };
 
@@ -1145,7 +1162,7 @@ get '/decline/:player' => sub {
   my $r = plr_decline_invitation($name, $invitor);
   if(!ref($r)) { return $r; }
 
-  redirect '/player';
+  redirect '/';
 
 };
 
@@ -1162,7 +1179,7 @@ get '/decline' => sub {
   my $r = plr_decline_invitation($name);
   if(!ref($r)) { return $r; }
 
-  redirect '/player';
+  redirect '/';
 
 };
 
@@ -1184,7 +1201,7 @@ get '/accept/:player' => sub {
   my $r = plr_accept_invitation($name, $invitor);
   if(!ref($r)) { return $r; }
 
-  redirect '/player';
+  redirect '/';
 };
 
 
@@ -1247,7 +1264,7 @@ get '/make_admin/:player' => sub {
 
   #--- finish
 
-  redirect $rt || "/clan/$clan";
+  redirect '/';
 
 };
 
@@ -1302,7 +1319,7 @@ get '/resign_admin' => sub {
   #--- drop all given invites
 
     $r = database('clandb')->do(
-      'DELETE FROM invites WHERE invitor =?', undef,
+      'DELETE FROM invites WHERE invitor = ?', undef,
       $plr->{'players_i'}
     );
     if(!$r) {
@@ -1319,7 +1336,7 @@ get '/resign_admin' => sub {
   #--- finish successfully
 
   database('clandb')->commit();
-  redirect $rt || '/player';
+  redirect '/';
 
 };
 
@@ -1477,7 +1494,7 @@ get '/kick/:player' => sub {
 
   #--- finish
 
-  redirect $rt || "/clan/$clan";
+  redirect '/';
 };
 
 
@@ -1568,7 +1585,7 @@ get '/disband' => sub {
 
   #--- finish
 
-  redirect '/player';
+  redirect '/';
 };
 
 

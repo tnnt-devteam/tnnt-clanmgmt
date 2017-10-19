@@ -124,7 +124,45 @@ section.plrinfo div:first-child {
 section.plrinfo div:nth-child(2) {
 }
 
-section.plrinfo span.plrhilite {
+section span.plrhilite {
   color: #0f0;
   font-weight: bold;
+}
+
+/*--- login info ------------------------------------------------------------
+
+this is the message that informs the user about his login status */
+
+section.loginfo {
+  text-align: center;
+  font-size: 100%;
+  margin: 1em;
+}
+
+section.loginfo div {
+  color: #0a0;
+  font-size: 133%;
+}
+
+section.loginfo a.button {
+  position: relative;
+  top: -0.2em;
+  font-size: 66%;
+  margin-left: 1em;
+}
+
+/*--- invites */
+
+table.invites {
+  margin: 0 auto;
+}
+
+table.invites td {
+  border: none;
+  text-align: left;
+}
+
+table.invites td:first-child {
+  border: none;
+  font-size: 133%;
 }
