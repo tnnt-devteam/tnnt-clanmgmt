@@ -846,7 +846,6 @@ sub clan_get_info
 #
 # GET  /                  ... front page
 # GET  /logout            ... log out
-# GET  /player            ... player personal administration page
 # GET  /leave_clan        ... leave current clan
 # any  /start_clan        ... starts new clan with the player as admin
 # any  /invite            ... display player invitation page
@@ -955,42 +954,6 @@ get '/logout' => sub {
   app->destroy_session();
   redirect '/';
 };
-
-#=============================================================================
-#=== player admin page =======================================================
-#=============================================================================
-
-get '/player' => sub {
-
-  #--- this is only for authenticated users, boot anyone who is not logged in
-
-  my $name = session('logname');
-  if(!$name) { return "Unauthenticated!"; }
-
-  #--- get player information
-
-  my $plr = plr_info($name, 1);
-  if(!ref($plr)) {
-    return $plr;
-  }
-
-  #--- get invitation info for the user
-
-  my $invinfo = plr_get_invitations($name);
-
-  #--- serve the page
-
-  template 'player', {
-    title => "Devnull Player $name",
-    clan => $plr->{'clan_name'},
-    admin => $plr->{'clan_admin'},
-    sole_admin => $plr->{'sole_admin'},
-    can_leave => $plr->{'can_leave'},
-    invinfo => $invinfo,
-    logname => $name
-  };
-};
-
 
 #=============================================================================
 #=== player clan leave =======================================================
