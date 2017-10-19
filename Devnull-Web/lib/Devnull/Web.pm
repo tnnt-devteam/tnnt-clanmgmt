@@ -149,7 +149,8 @@ sub plr_new_dgl
 #
 #   clan_name, clan_admin, clan_id, players_i
 #
-# If extended info is requested, then additional keys are returned:
+# If extended info is requested, then additional keys are returned (only if
+# clan member!):
 #
 #   can_leave, sole_admin
 #
@@ -187,7 +188,7 @@ sub plr_info
 
   #--- get extended information
 
-  if($extended) {
+  if($extended && defined($re->{'clan_name'})) {
 
     my $clan = $re->{'clan_name'};
     my $clan_info = clan_get_info($clan);
