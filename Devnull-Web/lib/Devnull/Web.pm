@@ -111,6 +111,39 @@ sub plr_new
 
 
 #=============================================================================
+# Check whether player exists in dgamelaunch database and if they do,
+# instantiate them in clandb
+#=============================================================================
+
+sub plr_new_dgl
+{
+  #--- arguments
+
+  my ($name) = @_;
+
+  #--- verify that the player exists in the dgamelaunch database
+
+  my $dbh = database('dgl');
+  my $sth = $dbh->prepare(
+    'SELECT username FROM dglusers WHERE username = ?'
+  );
+  my $r = $sth->execute($name);
+  if(!$r) {
+    return sprintf('Database query failed (%s)', $sth->errstr());
+  }
+  my ($p) = $sth->fetchrow_array();
+  if(!defined $p) {
+    return 'Player not found';
+  }
+
+  #--- now create an account in clandb
+
+  $r = plr_new($name);
+  return $r;
+}
+
+
+#=============================================================================
 # Returns hashref with player info retrieved from backend database in
 # following keys:
 #
@@ -148,7 +181,7 @@ sub plr_info
   if(!$r) { return "Failed to query database\n"; }
   $r = $sth->fetchrow_hashref('NAME_lc');
   if(!$r) {
-    return "Player not found";
+    return 'Player not found';
   }
   $re = $r;
 
@@ -339,7 +372,8 @@ sub plr_leave_clan
 
 #=============================================================================
 # Return players based on partial match anchored at start and optionally
-# excluding players from specified clan.
+# excluding players from specified clan. Search is performed on both clandb
+# and dglusers database and results are merged.
 #=============================================================================
 
 sub plr_search
@@ -351,7 +385,7 @@ sub plr_search
     $exclude_clan_id    # exclude players with clan_id
   ) = @_;
 
-  #--- query database
+  #--- query clandb database
 
   my @args = ( "$search%" );
   my $qry =
@@ -368,8 +402,32 @@ sub plr_search
   if(!$r) {
     return sprintf "Failed to query database (%s)", $sth->errstr();
   }
-  my $result = $sth->fetchall_hashref('name');
-  return $result;
+  my $result_clandb = $sth->fetchall_hashref('name');
+
+  for my $plr (keys %$result_clandb) {
+    $result_clandb->{$plr}{'_clandb'} = 1;
+    $result_clandb->{$plr}{'_dgl'} = 0;
+  }
+
+  #--- query dglusers database
+
+  $qry = 'SELECT username AS name FROM dglusers WHERE name LIKE ?';
+  $sth = database('dgl')->prepare($qry);
+  if(!ref($sth)) { return "Failed to get database handle"; }
+  $r = $sth->execute($args[0]);
+  if(!$r) {
+    return sprintf "Failed to query database (%s)", $sth->errstr();
+  }
+  my $result_dgl = $sth->fetchall_hashref('name');
+
+  #--- merge results
+
+  my %result = %$result_clandb;
+  for my $plr (keys %$result_dgl) {
+    $result{$plr}{'_dgl'} = 1;
+  }
+
+  return \%result;
 }
 
 
@@ -386,18 +444,33 @@ sub plr_invite
     $invitee      # player being invited
   ) = @_;
 
-  #--- get information about players
+  #--- get information about invitor
 
   my $plr_invitor = plr_info($name);
   if(!ref($plr_invitor)) { return $plr_invitor; }
-  my $plr_invitee = plr_info($invitee);
-  if(!ref($plr_invitee)) { return $plr_invitee; }
 
+  #--- get information about invitee, if invitee doesn't exist in clandb
+  #--- but exists in dgamelaunch db, then create their account in clandb
+
+  my $plr_invitee = plr_info($invitee);
+  if($plr_invitee eq 'Player not found') {
+    my $r = plr_new_dgl($invitee);
+    if(!ref($r)) { return $r; }
+    $plr_invitee = plr_info($invitee);
+  } elsif (!ref($plr_invitee)) {
+    return $plr_invitee;
+  }
+
+  #--- sanity checks
 
   if(!$plr_invitor->{'clan_admin'}) {
     return "Only clan admins can invite players";
   }
-  if($plr_invitor->{'clan_id'} == $plr_invitee->{'clan_id'}) {
+  if(
+    exists $plr_invitee->{'clan_id'}
+    && defined $plr_invitee->{'clan_id'}
+    && $plr_invitor->{'clan_id'} == $plr_invitee->{'clan_id'}
+  ) {
     return "The invited player already is member of the clan";
   };
 
