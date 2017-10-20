@@ -1601,7 +1601,7 @@ get '/clan_revoke' => sub {
 
   #--- finish
 
-  redirect "/clan/$clan";
+  redirect '/';
 
 };
 
@@ -1634,7 +1634,7 @@ get '/clan_revoke/:player' => sub {
 
   #--- finish
 
-  redirect "/clan/$clan";
+  redirect '/';
 
 };
 

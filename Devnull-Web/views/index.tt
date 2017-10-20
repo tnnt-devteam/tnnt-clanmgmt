@@ -121,27 +121,38 @@
 
   [%# === given invitations ============================================== %]
 
-  [% IF clan && invinfo.invitees.size %]
+  [% IF admin && clan_info.invites.size %]
   <section class="plrinfo">
 
     <div>
-      You have invited following players
-      to your clan <span class="plrhilite">[% clan %]</span></a>:
+      NEW CODE!!! You have invited the following players
+      to your clan <span class="plrhilite">[% clan %]</span>:
     </div>
 
     <table class="centered invites">
-      [% FOREACH invitee IN invinfo.invitees %]
+      [% FOREACH inventry IN clan_info.invites %]
         <tr>
-          <td>[% invitee %]</td>
           <td>
-             <a class="button" href="revoke/[% invitee %]">Revoke</a>
+            <span class="plrhilite">
+            [%
+              IF inventry.invitor == logname;
+                "you";
+              ELSE;
+                inventry.invitor;
+              END
+            %]</span>
+            invited
+            <span class="plrhilite">[% inventry.invitee %]</span>
+          </td>
+          <td>
+             <a class="button" href="clan_revoke/[% inventry.invitee %]">Revoke</a>
           </td>
         </tr>
       [% END %]
-      [% IF invinfo.invitees.size > 1 %]
+      [% IF clan_info.invites.size > 1 %]
         <tr>
           <td>&nbsp;</td>
-          <td><a class="button" href="revoke">Revoke All</a>
+          <td><a class="button" href="clan_revoke">Revoke All</a>
         </tr>
       [% END %]
     </table>
