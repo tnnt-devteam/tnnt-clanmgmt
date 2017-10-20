@@ -83,8 +83,8 @@
 
   [%# === pending invitations ============================================ %]
 
-  [% IF invinfo.invites.size %]
   <section class="plrinfo">
+  [% IF invinfo.invites.size %]
 
     <div>
       You have pending invitations from following players:
@@ -116,8 +116,14 @@
         [% END %]
     </table>
 
-  </section>
+  [% ELSE %]
+
+    <div>
+      You don't have any pending invitations
+    </div>
+
   [% END %]
+  </section>
 
   [%# === given invitations ============================================== %]
 
