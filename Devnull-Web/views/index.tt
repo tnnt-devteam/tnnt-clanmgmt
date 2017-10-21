@@ -179,12 +179,17 @@
       [% SET i = 1; FOREACH member IN clan_info.players.keys.sort %]
         [% NEXT IF member == logname %]
         <tr>
-          <td>[% member %]</td>
+          <td>
+            [% member %]
+            [% IF clan_info.players.item(member).clan_admin %]
+              (admin)
+            [% END %]
+          </td>
           <td>
             [% IF !clan_info.players.item(member).clan_admin %]
               <a class="button" href="make_admin/[% member %]">Make Admin</a>
+              <a class="button" href="kick/[% member %]">Kick</a>
             [% END %]
-            <a class="button" href="kick/[% member %]">Kick</a>
           </td>
         </tr>
       [% END %]
