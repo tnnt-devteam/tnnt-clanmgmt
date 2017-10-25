@@ -70,6 +70,8 @@ plugins:
         driver: SQLite
         database: devnull-web.sqlite
         on_connect_do: [ "PRAGMA foreign_keys = ON" ]
+        dbi_params:
+          sqlite_unicode: 1
       dgl:
         driver: SQLite
         database: dgl.sqlite
