@@ -1,0 +1,89 @@
+<div class="graybox">
+<h1 class="bighead">/DEV/NULL/NETHACK TRIBUTE TOURNAMENT 2017</h1>
+</div>
+
+<hr>
+
+<div class="menu">
+  <a href="../" class="menu">OVERVIEW</a>
+  <a href="../trophies.html" class="menu">TROPHIES</a>
+  <a href="../clans.html" class="menu">CLANS</a>
+  <a href="../players.html" class="menu">PLAYERS</a>
+  <a href="../about.html" class="menu">ABOUT</a>
+  ·
+  <a href="https://hardfought.org/" class="menu">HARDFOUGHT.ORG</a>
+</div>
+
+<hr>
+
+  [%# ====================================================================
+      === PLAYER INFORMATION =============================================
+      ==================================================================== %]
+
+[% IF logname %]
+
+  [%# === login info ===================================================== %]
+
+  <section class="loginfo">
+    <div>
+      Logged in as <span class="plrhilite">[% logname %]</span>
+      <a class="button" href="logout">LOGOUT</a>
+    </div>
+  </section>
+
+  <section class="plrinfo">
+    [% IF chlist.size > 0 %]
+      <div>
+        You have <em>[% chlist.size %]
+        [% IF chlist.size != 1 %]
+          challenges</em> that are
+        [% ELSE %]
+          challenge</em> that is
+        [% END %]
+        neither completed nor already disabled. You can <em>permanently</em>
+        disable
+        [% IF chlist.size != 1 %]
+          them
+        [% ELSE %]
+          it
+        [% END %]
+        from the list below. Once you permanently disable a challenge,
+        you can never get it back, so think twice if you really want to
+        do this.
+      </div>
+
+      <table class="centered invites">
+        [% FOREACH chal IN chlist.sort %]
+          <tr>
+            <td>[% chal %]</td>
+            <td><a class="button" href="chalignore/[% chal %]">Disable</a></td>
+          </tr>
+        [% END %]
+      </table>
+      <div>
+        <a class="button" href="./">GO BACK</a>
+      </div>
+    [% ELSE %]
+      <div>
+        You have no challenges that can be disabled.
+      </div>
+      <div>
+        <a class="button" href="./">GO BACK</a>
+      </div>
+    [% END %]
+
+  </section>
+
+[% ELSE %]
+
+  <section class="plrinfo">
+    <div>
+      You need to be logged in in order to be able to disable
+      challenges.
+      <br>
+      Please do that on the <em><a href="./">Clan Management</a></em>
+      page and then come back.
+    </div>
+  </section>
+
+[% END %]
