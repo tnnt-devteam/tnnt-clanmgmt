@@ -41,21 +41,25 @@ sub plr_authenticate
     $pwd       # 2. password
   ) = @_;
 
+  #--- canonical name (as stored in dgamelaunch database)
+
+  my $name_canon;
+
   #--- authenticate
 
   if($name && $pwd) {
     my $sth = database('dgl')->prepare(
-      'SELECT password FROM dglusers WHERE username = ?'
+      'SELECT username, password FROM dglusers WHERE lower(username) = ?'
     );
-    my $r = $sth->execute($name);
+    my $r = $sth->execute(lc($name));
     if(!$r) { return "Failed to query database"; }
-    my ($pw_db) = $sth->fetchrow_array();
+    my ($name_canon, $pw_db) = $sth->fetchrow_array();
     if(!defined($pw_db)) {
       return "Account '$name' does not exist";
     }
     my $salt = substr($pw_db, 0, 2);
     if(crypt($pwd, $salt) eq $pw_db) {
-      return [];
+      return \$name_canon;
     } else {
       return "Wrong player name or password";
     }
@@ -983,6 +987,8 @@ any [ 'get', 'post' ] => '/' => sub {
       if(!ref($r)) {
         $data{'errmsg'} = $r;
         die "Cannot login ($r)\n";
+      } else {
+        $name = $$r;
       }
 
   #--- if this is a first login, create the user
