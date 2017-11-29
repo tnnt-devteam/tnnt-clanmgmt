@@ -40,7 +40,19 @@ Dancer app directory `Devnull-Web` and run:
 
 Then just point your browser to http://*your_ip*:5000/
 
-Info about production deployment will be filled in later.
+For production deployment a suitable application web server is needed.
+`start.sh` and `stop.sh` scripts utilizing the
+[Starman](http://search.cpan.org/~miyagawa/Starman-0.1000/lib/Starman.pm)
+web server are provided. The main user-facing webserver needs to be
+configured as a reverse proxy for the application webserver. Example of
+Apache 2.4 config:
+
+    <Location /devnull/clanmgmt/>
+    ProxyPass         http://localhost:5000/
+    ProxyPassReverse  /
+    ProxyPreserveHost On
+    </Location>
+
 
 ## AUTHOR
 
