@@ -28,7 +28,6 @@
     <div>Logged in as <span class="plrhilite">[% logname %]</span></div>
     <div>
       <a class="button" href="logout">LOGOUT</a>
-      <a class="button" href="chalignore">CHALLENGES</a>
     </div>
   </section>
 
