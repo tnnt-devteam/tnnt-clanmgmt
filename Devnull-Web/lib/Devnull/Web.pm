@@ -1,9 +1,9 @@
 #=============================================================================
-# /DEV/NULL/NETHACK TRIBUTE CLAN MANAGEMENT
-# """""""""""""""""""""""""""""""""""""""""
-# (c) 2017 Borek Lupomesky <borek@lupomesky.cz>
+# THE NOVEMBER NETHACK TOURNAMENT CLAN MANAGEMENT
+# """""""""""""""""""""""""""""""""""""""""""""""
+# Derived from /dev/null/nethack Tribute clan management code
 #
-# Clan management for /dev/null/nethack Tribute tournament.
+# (c) 2017-2018 Borek Lupomesky <borek@lupomesky.cz>
 #=============================================================================
 
 package Devnull::Web;
