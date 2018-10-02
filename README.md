@@ -1,11 +1,8 @@
-# /DEV/NULL/NETHACK TRIBUTE CLAN MANAGEMENT
+# THE NOVEMBER NETHACK TOURNAMENT CLAN MANAGEMENT
 
-This code started as an attempt at reimplementation of /dev/null/nethack's
-central server code. With the tournament
-[retirement](https://twitter.com/devnull_nethack/status/908441635746279424)
-by Krystal, this never came to fruition. Instead, this code was coopted
-for clan management of the replacement tournament -- /dev/null/nethack
-Tribute. The tag 'pre-tribute' marks the last commit before this event.
+Adaptation of the
+[/dev/null/nethack Tribute](https://github.com/borekl/devnull-web)
+code for The November NetHack Tournament.
 
 ## ARCHITECTURE
 
