@@ -59,7 +59,7 @@ engines:
     Cookie:
       secret_key:           Pa$$w0rd
       with_request_address: 0
-      cookie_name:          devnull.session
+      cookie_name:          tnnt.session
       cookie_duration:      86400
       default_duration:     86400
 
@@ -76,10 +76,3 @@ plugins:
         driver: SQLite
         database: dgl.sqlite
         on_connect_do: [ "PRAGMA foreign_keys = ON" ]
-
-# application specific settings
-
-app:
-  challenges: /home/borek/devnull-tribute-2017/test/challenge
-  chalignore: /home/borek/ignore
-  challist: [ Grue, PacMan, Waldo, Pool, ZAPM, DigDug, Joust  ]
