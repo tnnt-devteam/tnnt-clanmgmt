@@ -970,7 +970,7 @@ any [ 'get', 'post' ] => '/' => sub {
 
     if(!$logname && request->is_get) {
       return template 'index', {
-        'title' => 'Devnull Login'
+        'title' => 'TNNT Login'
       };
     }
 
@@ -1026,7 +1026,7 @@ any [ 'get', 'post' ] => '/' => sub {
     }
 
     $data{'logname'} = $logname;
-    $data{'title'} = 'Devnull Clan Management';
+    $data{'title'} = 'TNNT Clan Management';
     return template 'index', \%data;
 
   #---------------------------------------------------------------------------
@@ -1037,7 +1037,7 @@ any [ 'get', 'post' ] => '/' => sub {
 
   catch {
     template 'index', {
-      title => 'Devnull Login Failed',
+      title => 'TNNT Login Failed',
       errmsg => "$@"
     };
   }
@@ -1075,7 +1075,7 @@ get '/leave_clan' => sub {
 any '/create_clan' => sub {
 
   my $data = {
-    title => 'Devnull / Start a new clan'
+    title => 'TNNT / Start a new clan'
   };
 
   #--- get login name (if logged in)
@@ -1124,7 +1124,7 @@ any '/create_clan' => sub {
 any '/invite' => sub {
 
   my $data = {
-    title => 'Devnull / Invite a player'
+    title => 'TNNT / Invite a player'
   };
 
   #--- only for logged in users
@@ -1163,7 +1163,7 @@ any '/invite' => sub {
 get '/invite/:invitee' => sub {
 
   my $data = {
-    title => 'Devnull / Invite a player'
+    title => 'TNNT / Invite a player'
   };
 
   #--- only for logged in users
@@ -1457,7 +1457,7 @@ get '/clan/:clan' => sub {
   if(!ref($clan_info)) {
     return "Failed to get info on clan $clan ($clan_info)";
   }
-  $response{'title'} = "Devnull / Clan $clan";
+  $response{'title'} = "TNNT / Clan $clan";
   $response{'clan'}{'name'} = $clan;
 
   #--- list of all players
