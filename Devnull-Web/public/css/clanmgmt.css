@@ -2,34 +2,58 @@
 /*=== CLAN MANAGEMENT =======================================================*/
 /*===========================================================================*/
 
-/* please note that the overarching devnull tribute web CSS is loaded as
- * well, this is not a standalone sheet */
+/* please note that the overarching main web css is loaded too, this is not
+   stand-alone style sheet */
 
+/*--- body ----------------------------------------------------------------*/
 
-/*--- some generic tweaks -------------------------------------------------*/
-
-em {
-  color: #0f0;
-  font-style: normal;
+body.clanmgmt {
 }
 
+/*--- main page heading ---------------------------------------------------*/
 
-/*--- form text input -------------------------------------------------------
+h1.cmgmt {
+  text-align: center;
+}
 
-style for all form text inputs */
+/*--------------------------------------------------------------------------*/
+/*--- FRONT PAGE -----------------------------------------------------------*/
+/*--------------------------------------------------------------------------*/
+
+/*--- this holds the front page for new arrivals ---------------------------
+
+the page is divided to left and right divs that hold information about the
+website and login form respectively */
+
+div.front {
+  display: flex;
+  justify-content: center;
+}
+
+/*--- left and right content pane ------------------------------------------*/
+
+div.idxleft {
+  margin: 2em;
+  width: 30em;
+}
+
+div.idxright {
+  margin: 2em;
+  width: 30em;
+}
+
+/*--- form text input ------------------------------------------------------*/
 
 input {
   font-family: inherit;
   font-size: 166%;
-  color: #0f0;
-  border: 2pt solid #0a0;
-  background-color: black;
+  border: 2pt solid #888;
   padding: 0.3em;
   margin: 0.3em 0;
 }
 
 input:focus {
-  border: 2pt solid #0f0;
+  border: 2pt solid #000;
 }
 
 input:required {
@@ -37,16 +61,20 @@ input:required {
   box-shadow: none;
 }
 
-/*--- form button -----------------------------------------------------------
+label {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #888;
+  font-size: 100%;
+}
 
-style for form buttons */
+/*--- form button ----------------------------------------------------------*/
 
 button {
-  color: #0a0;
+  color: #888;
   font-family: inherit;
   font-weight: bold;
   font-size: 133%;
-  background-color: #030;
   border: none;
   text-transform: uppercase;
   padding: 0.3em 0.5em;
@@ -55,9 +83,62 @@ button {
 }
 
 button:hover {
-  color: #0f0;
+  color: #000;
   cursor: pointer;
 }
+
+/*--- info pane ------------------------------------------------------------
+
+this is the left side box containing explanatory info for the newly
+arrived users */
+
+div.info {
+  color: #888;
+  font-size: 100%;
+  font-weight: 400;
+  text-align: center;
+}
+
+div.info p {
+  text-align: right;
+  margin-top: 0;
+}
+
+span.infohlt {
+  color: #000;
+  font-size: 133%;
+  text-transform: uppercase;
+  margin-right: 0.5em;
+  letter-spacing: 0.05em;
+}
+
+span.infosub1 {
+  color: #000;
+}
+
+/*--- error message on usuccessful login -----------------------------------*/
+
+p.err {
+  margin: 0;
+  color: red;
+  font-weight: 900;
+  text-transform: uppercase;
+  font-size: 133%;
+  letter-spacing: 0.1em;
+}
+
+p.errexplain {
+  margin: 0;
+  color: #888;
+}
+
+span.errmsg {
+  color: black;
+}
+
+/*--------------------------------------------------------------------------*/
+/*--- GENERIC PAGE ELEMENTS ------------------------------------------------*/
+/*--------------------------------------------------------------------------*/
 
 /*--- button-like link ------------------------------------------------------
 
@@ -65,42 +146,26 @@ links (A tags) that look exactly like form buttons defined above; these are
 used when desired action is invoked by using GET request */
 
 a.button {
-  color: #0a0;
+  color: #888;
   font-family: inherit;
   font-weight: bold;
   font-size: 133%;
-  background-color: #030;
   border: none;
   text-transform: uppercase;
   padding: 0.3em 0.5em;
   margin: 1em 0;
   margin-right: 0.5em;
+  background-color: rgb(240, 240, 240);
 }
 
 a.button:hover {
   text-decoration: none;
-  color: #0f0;
+  color: #000;
 }
 
-/*--- login page ------------------------------------------------------------
-
-this is the index page of the clan management app that is show when
-user is not yet logged in */
-
-div.loginhint {
-  width: 30em;
-}
-
-div.loginhint p.main {
-  font-size: 166%;
-  font-weight: bold;
-  text-align: center;
-}
-
-div.loginhint p.explain {
-  font-size: 133%;
-  color: #0a0;
-}
+/*--------------------------------------------------------------------------*/
+/*--- MAIN PAGE / FRONT FOR LOGGED IN USERS --------------------------------*/
+/*--------------------------------------------------------------------------*/
 
 /*--- player info -----------------------------------------------------------
 
@@ -108,7 +173,7 @@ this is the index page of the clan management app that is show when
 user is logged in */
 
 section.plrinfo {
-  color: #0a0;
+  color: #888;
   text-align: center;
   margin: 2em;
 }
@@ -125,9 +190,14 @@ section.plrinfo div:nth-child(2) {
 }
 
 section span.plrhilite {
-  color: #0f0;
+  color: #000;
   font-weight: bold;
 }
+
+/*--- OLD DEVNULL CSS BELOW THIS LINE -------------------------------------*/
+
+
+
 
 /*--- login info ------------------------------------------------------------
 

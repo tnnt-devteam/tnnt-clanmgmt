@@ -1,20 +1,6 @@
-<div class="graybox">
-<h1 class="bighead">/DEV/NULL/NETHACK TRIBUTE TOURNAMENT 2017</h1>
-</div>
+<h1 class="cmgmt">The November NetHack Tournament</h1>
 
-<hr>
-
-<div class="menu">
-  <a href="../" class="menu">OVERVIEW</a>
-  <a href="../trophies.html" class="menu">TROPHIES</a>
-  <a href="../clans.html" class="menu">CLANS</a>
-  <a href="../players.html" class="menu">PLAYERS</a>
-  <a href="../about.html" class="menu">ABOUT</a>
-  ·
-  <a href="https://hardfought.org/" class="menu">HARDFOUGHT.ORG</a>
-</div>
-
-<hr>
+[%# this class encompasses everything but the title %]
 
   [%# ====================================================================
       === PLAYER INFORMATION =============================================
@@ -202,43 +188,64 @@
 
 [% ELSE %]
 
-  [%# ====================================================================
-      === LOGIN FORM =====================================================
-      ==================================================================== %]
+[%# ========================================================================
+    === FRONT PAGE FOR NEW ARRIVALS ========================================
+    ======================================================================== %]
+
+<div class="front">
+
+[%# ===  L E F T   P A N E  ================================================ %]
+
+<div class="idxleft">
+
+  <div class="info">
+
+    <p>
+      <span class="infohlt">Hey! What is this?</span>
+      The November NetHack Tournament (TNNT) is an upcoming NetHack
+      tournament that replaces the discontinued /dev/null/nethack.
+    </p>
+
+    <p>
+      <span class="infohlt">Okay, but is this web page all?</span>
+      No. This page is put up in advance so that players can sign up
+      for the tournament and gather themselves into clans. Once the
+      tournament starts, the real scoreboard web will become available.
+    </p>
+
+    <p>
+      <span class="infohlt">So how do I join?</span>
+      Use your <span class="infosub1">hardfought.org</span> dgamelaunch
+      credentials to log into The November NetHack Tournament clan management
+      page. There you can do everything: start clans, join clans, manage your
+      clan and more.
+    </p>
+
+  </div>
+
+</div>
+
+[%# ===  R I G H T  P A N E  ============================================== %]
+
+<div class="idxright">
 
   [% IF errmsg %]
 
-  <div class="flexrow">
-    <div class="loginhint">
-      <p class="main">Something went wrong!</p>
-      <p class="explain">
+    <div>
+      <p class="err">Something went wrong!</p>
+      <p class="errexplain">
         Sorry, for some reason we could not
-        log you in. This is the error message
-        our system returned:
+        log you in. This is what our server has to say about what happened:
+        <span class="errmsg">[% errmsg %]</span>
       </p>
-      <p class="explain">
-        [% errmsg %]
+
       </p>
     </div>
-  </div>
-
-  [% ELSE %]
-
-  <div class="flexrow">
-    <div class="loginhint">
-      <p class="main">Please log in first!</p>
-      <p class="explain">
-        Use your <em>hardfought.org</em> dgamelaunch
-        credentials to access the
-        /dev/null/nethack Tribute tournament
-        clan management page
-      </p>
-    </div>
-  </div>
 
   [% END %]
 
-  <div class="flexrow">
+  <div class="loginform">
+
     <form method="post">
       <div>
         <label for="reg_name">Username</label><br>
@@ -253,6 +260,10 @@
         <button name="reset" value="reset" type="reset">Reset</button>
       </div>
     </form>
+
   </div>
+</div>
 
 [% END %]
+
+</div> [%# class front %]
