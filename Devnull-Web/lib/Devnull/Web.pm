@@ -10,7 +10,6 @@ package Devnull::Web;
 use Dancer2;
 use Dancer2::Plugin::Database;
 use Syntax::Keyword::Try;
-use File::Touch;
 
 our $VERSION = '0.1';
 
