@@ -73,7 +73,7 @@
       [% IF invinfo.invites.size %]
 
         <td>
-          You have pending invitations from following players:
+          You have pending invitations from following players
         </td>
 
         <td>
@@ -83,12 +83,13 @@
             <span class="plrhilite">[% invite.1 %]</span>
 
             [% IF admin && !sole_admin || !admin %]
-            <a class="button" href="accept/[% invite.0 %]">Accept</a>
+            <a class="button btnsmall" href="accept/[% invite.0 %]">Accept</a>
             [% END %]
-            <a class="button" href="decline/[% invite.0 %]">Decline</a>
+            <a class="button btnsmall" href="decline/[% invite.0 %]">Decline</a>
+            <br>
           [% END %]
           [% IF invinfo.invites.size > 1 %]
-            <a class="button" href="decline">Decline All</a>
+            <a class="button btnsmall" href="decline">Decline All</a>
           [% END %]
         </td>
 
