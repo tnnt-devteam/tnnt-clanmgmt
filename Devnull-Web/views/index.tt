@@ -152,7 +152,7 @@
               [% END %]
             </td>
             <td>
-              [% IF !clan_info.players.item(member).clan_admin %]
+              [% IF !clan_info.players.item(member).clan_admin && admin %]
                 <a class="button btnsmall" href="make_admin/[% member %]">Make Admin</a>
                 <a class="button btnsmall" href="kick/[% member %]">Kick</a>
               [% END %]
