@@ -1,73 +1,48 @@
-<div class="graybox">
-<h1 class="bighead">/DEV/NULL/NETHACK TRIBUTE TOURNAMENT 2017</h1>
-</div>
+<h1 class="cmgmt">The November NetHack Tournament</h1>
 
-<hr>
+<div class="front">
 
-<div class="menu">
-  <a href="../" class="menu">OVERVIEW</a>
-  <a href="../trophies.html" class="menu">TROPHIES</a>
-  <a href="../clans.html" class="menu">CLANS</a>
-  <a href="../players.html" class="menu">PLAYERS</a>
-  <a href="../about.html" class="menu">ABOUT</a>
-  ·
-  <a href="https://hardfought.org/" class="menu">HARDFOUGHT.ORG</a>
-</div>
-
-<hr>
-
-[% IF logname %]
-  <section class="loginfo">
-    <div>
-      Logged in as <span class="plrhilite">[% logname %]</span>
-      <a class="button" href="logout">LOGOUT</a>
-    </div>
-  </section>
-[% END %]
-
-  <div class="flexrow">
-    <div class="loginhint">
-      <p class="main">Invite player into your clan [% clan %]</p>
-      <p class="explain">
-        Here you can invite other players to your
-        clan. Enter the player's name or part of it
-        in the box below, this will show list of
-        matching players who you can then issue invites.
+  <div class="idxleft">
+    <div class="info">
+      <p>
+        <span class="infohlt">Invite other players to your clan</span>
+        Use the search box to find players you want to invite. You
+        do not need to type their full name – just a few characters is enough.
+        After you submit your search, matching known users will be shown
+        so that you can invite them.
+      </p>
+      <p>
+        You are logged in as <span class="plrhilite">[% logname %]</span>.
       </p>
     </div>
   </div>
 
-<div class="flexrow">
-  <form method="post">
-    <div>
-      <label for="invite_name">Search for</label><br>
-      <input type="text" id="invite_name" name="invite_name" required>
-    </div>
-    <div class="buttons">
-      <button name="submit" value="submit" type="submit">Search</button>
-      <a class="button" href="./">Not Now</a>
-    </div>
-  </form>
-</div>
+  <div class="idxright">
+    <form method="post">
+      <div>
+        <label for="invite_name">Search for</label><br>
+        <input type="text" id="invite_name" name="invite_name" required>
+      </div>
+      <div class="buttons">
+        <button name="submit" value="submit" type="submit">Search</button>
+        <a class="button" href="./">Not Now</a>
+      </div>
+    </form>
 
-
-[% IF success %]
-<p class="success">[% success %]</p>
-[% END %]
-
-[% IF plrlist %]
-  <table class="centered invites">
-  [% IF plrlist.size %]
-    [% FOR plr IN plrlist %]
-      <tr>
-        <td>[% plr %]</td>
-        <td><a class="button" href="invite/[% plr %]">Invite</a></td>
-      </tr>
+    [% IF plrlist %]
+      [% IF plrlist.size %]
+        <p>Search returned [% plrlist.size %] results</p>
+        [% FOR plr IN plrlist %]
+          <div class="invsrc">
+            [% plr %]<br>
+            <a class="button btnsmall" href="invite/[% plr %]">Invite</a>
+          </div>
+        [% END %]
+      [% ELSE %]
+          <p>No players matched your search, please try again</p>
+      [% END %]
     [% END %]
-  [% ELSE %]
-    <tr><td>
-      No players matched your search, please try again.
-    </td><tr>
-  [% END %]
-  </table>
-[% END %]
+
+  </div>
+
+</div>

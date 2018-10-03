@@ -212,6 +212,23 @@ tr.clanmember td {
   padding-right: 1em;
 }
 
+/*--------------------------------------------------------------------------*/
+/*--- INVITE PLAYER --------------------------------------------------------*/
+/*--------------------------------------------------------------------------*/
+
+/* invite search result element */
+
+div.invsrc {
+  display: inline-block;
+  text-align: center;
+  overflow: hidden;
+  width: 8em;
+  background: #eee;
+  margin-right: 0.2em;
+  margin-bottom: 0.2em;
+  padding: 0.2em;
+}
+
 /*--- OLD DEVNULL CSS BELOW THIS LINE -------------------------------------*/
 
 
