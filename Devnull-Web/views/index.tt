@@ -124,6 +124,7 @@
           invited
           <span class="plrhilite">[% inventry.invitee %]</span>
           <a class="button btnsmall" href="clan_revoke/[% inventry.invitee %]">Revoke</a>
+          <br>
         [% END %]
 
         [% IF clan_info.invites.size > 1 %]
