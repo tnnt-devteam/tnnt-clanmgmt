@@ -8,183 +8,163 @@
 
 [% IF logname %]
 
+  <table class="clanmgmt">
+
   [%# === login info ===================================================== %]
 
-  <section class="plrinfo">
-    <div>Logged in as <span class="plrhilite">[% logname %]</span></div>
-    <div>
-      <a class="button" href="logout">LOGOUT</a>
-    </div>
-  </section>
+    <tr class="clanmgmt">
+      <td>Logged in as <span class="plrhilite">[% logname %]</span></td>
+      <td><a class="button btnsmall" href="logout">LOGOUT</a></td>
+    </tr>
 
   [%# === clan membership ================================================ %]
 
   [% IF clan %]
-    <section class="plrinfo">
 
-      <div>
-        You are
-          [% IF admin %]
-            [%IF sole_admin %]
-              the sole admin
-            [% ELSE %]
-              an admin
-            [% END %]
+    <tr class="clanmgmt">
+      <td>
+      You are
+        [% IF admin %]
+          [%IF sole_admin %]
+            the sole admin
           [% ELSE %]
-            a member
+            an admin
           [% END %]
-          of clan <span class="plrhilite">[% clan %]</span>
-      </div>
+        [% ELSE %]
+          a member
+        [% END %]
+        of clan <span class="plrhilite">[% clan %]</span>
+      </td>
 
-      <div>
+      <td>
 
         [%# --- leave clan --- %]
         [% IF !admin || ( admin && can_leave ) %]
-        <a class="button" href="leave_clan">Leave</a>
+        <a class="button btnsmall" href="leave_clan">Leave</a>
         [% END %]
 
         [%# --- give invite --- %]
         [% IF admin %]
-        <a class="button" href="invite">Invite</a>
+        <a class="button btnsmall" href="invite">Invite</a>
         [% END %]
 
         [%# --- resign admin --- %]
         [% IF admin && !sole_admin %]
-        <a class="button" href="resign_admin">Resign Admin</a>
+        <a class="button btnsmall" href="resign_admin">Resign Admin</a>
         [% END %]
 
         [%# --- disband clan --- %]
         [% IF admin %]
-        <a class="button" href="disband">Disband</a>
+        <a class="button btnsmall" href="disband">Disband</a>
         [% END %]
 
-      </div>
-
-    </section>
+      </td>
+    </tr>
 
   [% ELSE %]
-    <section class="plrinfo">
-      <div>You are not member of any clan</div>
-      <div><a class="button" href="create_clan">START CLAN</a></div>
-    </section>
+    <tr class="clanmgmt">
+      <td>You are not member of any clan</td>
+      <td><a class="button btnsmall" href="create_clan">START CLAN</a></td>
+    </tr>
   [% END %]
 
   [%# === pending invitations ============================================ %]
 
-  <section class="plrinfo">
-  [% IF invinfo.invites.size %]
+    <tr class="clanmgmt">
 
-    <div>
-      You have pending invitations from following players:
-    </div>
+      [% IF invinfo.invites.size %]
 
-    <table class="centered invites">
-      [% FOREACH invite IN invinfo.invites %]
-        <tr>
-          <td>
+        <td>
+          You have pending invitations from following players:
+        </td>
+
+        <td>
+          [% FOREACH invite IN invinfo.invites %]
             <span class="plrhilite">[% invite.0 %]</span>
             invites you to clan
             <span class="plrhilite">[% invite.1 %]</span>
-          </td>
-          <td>
+
             [% IF admin && !sole_admin || !admin %]
             <a class="button" href="accept/[% invite.0 %]">Accept</a>
             [% END %]
             <a class="button" href="decline/[% invite.0 %]">Decline</a>
-          </td>
-        <tr>
+          [% END %]
+          [% IF invinfo.invites.size > 1 %]
+            <a class="button" href="decline">Decline All</a>
+          [% END %]
+        </td>
+
+      [% ELSE %]
+
+        <td>
+          You don't have any pending invitations
+        </td>
+        <td></td>
+
       [% END %]
-        [% IF invinfo.invites.size > 1 %]
-          <tr>
-            <td>&nbsp;</td>
-            <td>
-              <a class="button" href="decline">Decline All</a>
-            </td>
-          </tr>
-        [% END %]
-    </table>
-
-  [% ELSE %]
-
-    <div>
-      You don't have any pending invitations
-    </div>
-
-  [% END %]
-  </section>
+    </tr>
 
   [%# === given invitations ============================================== %]
 
-  [% IF admin && clan_info.invites.size %]
-  <section class="plrinfo">
+    [% IF admin && clan_info.invites.size %]
 
-    <div>
-      You have invited the following players
-      to your clan <span class="plrhilite">[% clan %]</span>:
-    </div>
+    <tr class="clanmgmt">
+      <td>
+        Your clan has issued following outstanding invitations
+      </td>
 
-    <table class="centered invites">
-      [% FOREACH inventry IN clan_info.invites %]
-        <tr>
-          <td>
-            <span class="plrhilite">
-            [%
-              IF inventry.invitor == logname;
-                "you";
-              ELSE;
-                inventry.invitor;
-              END
-            %]</span>
-            invited
-            <span class="plrhilite">[% inventry.invitee %]</span>
-          </td>
-          <td>
-             <a class="button" href="clan_revoke/[% inventry.invitee %]">Revoke</a>
-          </td>
-        </tr>
-      [% END %]
-      [% IF clan_info.invites.size > 1 %]
-        <tr>
-          <td>&nbsp;</td>
-          <td><a class="button" href="clan_revoke">Revoke All</a>
-        </tr>
-      [% END %]
-    </table>
+      <td>
+        [% FOREACH inventry IN clan_info.invites %]
+          <span class="plrhilite">
+          [%
+            IF inventry.invitor == logname;
+              "you";
+            ELSE;
+              inventry.invitor;
+            END
+          %]</span>
+          invited
+          <span class="plrhilite">[% inventry.invitee %]</span>
+          <a class="button btnsmall" href="clan_revoke/[% inventry.invitee %]">Revoke</a>
+        [% END %]
 
-  </section>
-  [% END %]
+        [% IF clan_info.invites.size > 1 %]
+          <a class="button btnsmall" href="clan_revoke">Revoke All
+        [% END %]
+
+      </tr>
+
+    [% END %]
 
   [%# === clan membership management ===================================== %]
 
-  [% IF admin && clan_info.players.size > 1 %]
-  <section class="plrinfo">
+    <tr class="clanmgmt">
 
-    <div>
-      Your clan's members (apart from you):
-    </div>
+      <td>Your clan's members (apart from you)</td>
+      <td>
+        <table class="clanmgmtsub">
+        [% SET i = 1; FOREACH member IN clan_info.players.keys.sort %]
+          [% NEXT IF member == logname %]
+          <tr class="clanmember">
+            <td>
+              <span class="plrhilite">[% member %]</span>
+              [% IF clan_info.players.item(member).clan_admin %]
+                <span class="adminflag">admin</span>
+              [% END %]
+            </td>
+            <td>
+              [% IF !clan_info.players.item(member).clan_admin %]
+                <a class="button btnsmall" href="make_admin/[% member %]">Make Admin</a>
+                <a class="button btnsmall" href="kick/[% member %]">Kick</a>
+              [% END %]
+            </td>
+          </tr>
+        [% END %]
+        </table>
+      </td>
+    </tr>
 
-    <table class="centered invites">
-      [% SET i = 1; FOREACH member IN clan_info.players.keys.sort %]
-        [% NEXT IF member == logname %]
-        <tr>
-          <td>
-            [% member %]
-            [% IF clan_info.players.item(member).clan_admin %]
-              (admin)
-            [% END %]
-          </td>
-          <td>
-            [% IF !clan_info.players.item(member).clan_admin %]
-              <a class="button" href="make_admin/[% member %]">Make Admin</a>
-              <a class="button" href="kick/[% member %]">Kick</a>
-            [% END %]
-          </td>
-        </tr>
-      [% END %]
-    </table>
-
-  </section>
-  [% END %]
+  </table>
 
 [% ELSE %]
 
@@ -233,12 +213,10 @@
 
     <div>
       <p class="err">Something went wrong!</p>
-      <p class="errexplain">
+      <p class="errexplain spaceafter">
         Sorry, for some reason we could not
         log you in. This is what our server has to say about what happened:
         <span class="errmsg">[% errmsg %]</span>
-      </p>
-
       </p>
     </div>
 

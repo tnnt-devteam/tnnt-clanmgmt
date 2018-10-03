@@ -149,7 +149,6 @@ a.button {
   color: #888;
   font-family: inherit;
   font-weight: bold;
-  font-size: 133%;
   border: none;
   text-transform: uppercase;
   padding: 0.3em 0.5em;
@@ -158,9 +157,19 @@ a.button {
   background-color: rgb(240, 240, 240);
 }
 
+a.btnsmall {
+  font-size: 66%;
+}
+
 a.button:hover {
   text-decoration: none;
   color: #000;
+}
+
+/* paragraph with extra space below */
+
+p.spaceafter {
+  margin-bottom: 1em;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -172,26 +181,35 @@ a.button:hover {
 this is the index page of the clan management app that is show when
 user is logged in */
 
-section.plrinfo {
+span.plrhilite {
+  color: black;
+  text-transform: uppercase;
+  margin: 0 0.2em;
+}
+
+span.adminflag {
+  font-size: 66%;
+}
+
+/*--- table ---------------------------------------------------------------*/
+
+tr.clanmgmt {
+  vertical-align: baseline;
+  font-size: 133%;
+  font-weight: 400;
   color: #888;
-  text-align: center;
-  margin: 2em;
+  border-bottom: 1px solid #eee;
 }
 
-section.plrinfo div {
-  margin: 0.5em;
+tr.clanmember {
+  vertical-align: baseline;
+  font-weight: 400;
+  color: #888;
 }
 
-section.plrinfo div:first-child {
-  font-size: 166%;
-}
-
-section.plrinfo div:nth-child(2) {
-}
-
-section span.plrhilite {
-  color: #000;
-  font-weight: bold;
+tr.clanmember td {
+  padding: 0;
+  padding-right: 1em;
 }
 
 /*--- OLD DEVNULL CSS BELOW THIS LINE -------------------------------------*/

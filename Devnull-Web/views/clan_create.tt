@@ -1,73 +1,44 @@
-<div class="graybox">
-<h1 class="bighead">/DEV/NULL/NETHACK TRIBUTE TOURNAMENT 2017</h1>
-</div>
+<h1 class="cmgmt">The November NetHack Tournament</h1>
 
-<hr>
+<div class="front">
 
-<div class="menu">
-  <a href="../" class="menu">OVERVIEW</a>
-  <a href="../trophies.html" class="menu">TROPHIES</a>
-  <a href="../clans.html" class="menu">CLANS</a>
-  <a href="../players.html" class="menu">PLAYERS</a>
-  <a href="../about.html" class="menu">ABOUT</a>
-  ·
-  <a href="https://hardfought.org/" class="menu">HARDFOUGHT.ORG</a>
-</div>
-
-<hr>
-
-[% IF logname %]
-  <section class="loginfo">
-    <div>
-      Logged in as <span class="plrhilite">[% logname %]</span>
-      <a class="button" href="logout">LOGOUT</a>
-    </div>
-  </section>
-[% END %]
-
-[% IF errmsg %]
-
-  <div class="flexrow">
-    <div class="loginhint">
-      <p class="main">Oops, something went wrong!</p>
-      <p class="explain">
-        Sorry, for some reason we could not create
-        a new clan for you. This is the error message
-        our system returned:
-      </p>
-      <p class="explain">
-        [% errmsg %]
-      </p>
-    </div>
-  </div>
-
-[% ELSE %]
-
-  <div class="flexrow">
-    <div class="loginhint">
-      <p class="main">Start a new clan</p>
-      <p class="explain">
+  <div class="idxleft">
+    <div class="info">
+      <p>
+        <span class="infohlt">Start your own clan</span>
         Here you can start a new clan with a name
-        you can type in below. You will become clan's
+        you can type on the right. You will become clan's
         administrator and will be able to invite
         new members. Your new clan will appear in the
         scoreboard with some delay, so don't panic!
       </p>
+      <p>
+        You are logged in as <span class="plrhilite">[% logname %]</span>.
+      </p>
     </div>
   </div>
 
-[% END %]
+  <div class="idxright">
 
-<div class="flexrow">
-  <form method="post">
-    <div>
-      <label for="clan_name">Clan name</label><br>
-      <input type="text" id="clan_name" name="clan_name" required>
-    </div>
-    <div class="buttons">
-      <button name="clan_create" value="clan_create" type="submit">Create</button>
-      <a class="button" href="./">Not Now</a>
-    </div>
-  </form>
-</div>
+    [% IF errmsg %]
+      <p class="err">Oops, something went wrong!</p>
+      <p class="errexplain spaceafter">
+        Sorry, for some reason we could not create
+        a new clan for you. This is the error message
+        our system returned: <span class="errmsg">[% errmsg %]</span>
+      </p>
+    [% END %]
 
+    <form method="post">
+      <div>
+        <label for="clan_name">Clan name</label><br>
+        <input type="text" id="clan_name" name="clan_name" required>
+      </div>
+      <div class="buttons">
+        <button name="clan_create" value="clan_create" type="submit">Create</button>
+        <a class="button" href="./">Not Now</a>
+      </div>
+    </form>
+  </div>
+
+</div> [%# front %]
