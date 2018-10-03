@@ -1,3 +1,8 @@
+CREATE TABLE dglusers (
+  username text,
+  password text
+);
+
 -- password is '123
 
 INSERT INTO dglusers ( username, password ) VALUES ( 'player1', 'aamrgyQfDFSHw');
