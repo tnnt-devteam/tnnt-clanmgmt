@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="css/clanmgmt.css">
 </head>
 
-<body>
+<body class="clanmgmt">
 [% content %]
 </body>
 
