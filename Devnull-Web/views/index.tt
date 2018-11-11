@@ -62,7 +62,9 @@
   [% ELSE %]
     <tr class="clanmgmt">
       <td>You are not member of any clan</td>
-      <td><a class="button btnsmall" href="create_clan">START CLAN</a></td>
+      [% IF !freeze %]
+        <td><a class="button btnsmall" href="create_clan">START CLAN</a></td>
+      [% END %]
     </tr>
   [% END %]
 
