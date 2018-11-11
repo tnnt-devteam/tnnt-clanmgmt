@@ -76,3 +76,10 @@ plugins:
         driver: SQLite
         database: dgl.sqlite
         on_connect_do: [ "PRAGMA foreign_keys = ON" ]
+
+# application specific settings
+#
+# * app.freeze - block adding new players to clans and creating new clans
+
+app:
+  freeze: 1

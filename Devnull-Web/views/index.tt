@@ -42,7 +42,7 @@
         [% END %]
 
         [%# --- give invite --- %]
-        [% IF admin %]
+        [% IF admin && !freeze %]
         <a class="button btnsmall" href="invite">Invite</a>
         [% END %]
 
@@ -70,7 +70,7 @@
 
     <tr class="clanmgmt">
 
-      [% IF invinfo.invites.size %]
+      [% IF invinfo.invites.size && !freeze %]
 
         <td>
           You have pending invitations from following players

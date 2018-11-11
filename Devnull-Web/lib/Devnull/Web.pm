@@ -246,6 +246,12 @@ sub plr_start_clan
     return "Player '$player_name' is already a clan member";
   }
 
+  #--- block clan creatin if freeze is on
+
+  if(setting('app')->{'freeze'}) {
+    return 'Clan freeze in effect, you cannot create clans any more';
+  }
+
   #--- start transaction
 
   my $r = database('clandb')->begin_work();
@@ -450,6 +456,12 @@ sub plr_invite
     $name,        # player doing the inviting
     $invitee      # player being invited
   ) = @_;
+
+  #--- block issuing invites if clan freeze is on
+
+  if(setting('app')->{'freeze'}) {
+    return 'Clan freeze in effect, you cannot issue invites';
+  }
 
   #--- get information about invitor
 
@@ -691,6 +703,12 @@ sub plr_accept_invitation
   #--- arguments
 
   my ($name, $invitor) = @_;
+
+  #--- block issuing invites if clan freeze is on
+
+  if(setting('app')->{'freeze'}) {
+    return 'Clan freeze in effect, you cannot accept invites';
+  }
 
   #--- get info on both players
 
@@ -1027,6 +1045,7 @@ any [ 'get', 'post' ] => '/' => sub {
 
     $data{'logname'} = $logname;
     $data{'title'} = 'TNNT Clan Management';
+    $data{'freeze'} = setting('app')->{'freeze'};
     return template 'index', \%data;
 
   #---------------------------------------------------------------------------
