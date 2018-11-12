@@ -40,6 +40,10 @@ sub plr_authenticate
     $pwd       # 2. password
   ) = @_;
 
+  #--- dgamelaunch trims passwords to 20 chars
+
+  $pwd = substr($pwd, 0, 20);
+
   #--- canonical name (as stored in dgamelaunch database)
 
   my $name_canon;
@@ -56,8 +60,7 @@ sub plr_authenticate
     if(!defined($pw_db)) {
       return "Account '$name' does not exist";
     }
-    my $salt = substr($pw_db, 0, 2);
-    if(crypt($pwd, $salt) eq $pw_db) {
+    if(crypt($pwd, $pw_db) eq $pw_db) {
       return \$name_canon;
     } else {
       return "Wrong player name or password";
