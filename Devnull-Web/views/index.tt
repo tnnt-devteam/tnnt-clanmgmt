@@ -131,7 +131,7 @@
         [% END %]
 
         [% IF clan_info.invites.size > 1 %]
-          <a class="button btnsmall" href="clan_revoke">Revoke All
+          <a class="button btnsmall" href="clan_revoke">Revoke All</a><br>
         [% END %]
 
       </tr>
