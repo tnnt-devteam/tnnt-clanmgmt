@@ -80,6 +80,8 @@ plugins:
 # application specific settings
 #
 # * app.freeze - block adding new players to clans and creating new clans
+# * app.clanlimit - maximum number of clan members; unlimited if not specified
 
 app:
-  freeze: 1
+  freeze: 0
+  clanlimit: 12

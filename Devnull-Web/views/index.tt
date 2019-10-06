@@ -40,7 +40,7 @@
         [% END %]
 
         [%# --- give invite --- %]
-        [% IF admin && !freeze %]
+        [% IF admin && !freeze && clan_info.caninvite %]
         <a class="button btnsmall" href="invite">Invite</a>
         [% END %]
 
@@ -129,9 +129,10 @@
         [% END %]
 
         [% IF clan_info.invites.size > 1 %]
-          <a class="button btnsmall" href="clan_revoke">Revoke All
+          <a class="button btnsmall" href="clan_revoke">Revoke All</a><br>
         [% END %]
 
+        Number of available invitation slots: [% clan_info.caninvite %]
       </tr>
 
     [% END %]
@@ -161,6 +162,10 @@
           </tr>
         [% END %]
         </table>
+        Your clan has total of [% clan_info.players.size %] members
+        [% IF clanlimit.defined %]
+          (out of allowed maximum of [% clanlimit %])
+        [% END %]
       </td>
     </tr>
 

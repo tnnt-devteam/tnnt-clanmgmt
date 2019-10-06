@@ -314,6 +314,35 @@ sub plr_start_clan
 
 
 #=============================================================================
+# Return true/false depending on whether the clan membership is at the limit
+# or not. Throws an exception on failure.
+#=============================================================================
+
+sub is_clan_full
+{
+  my $clan = shift;
+
+  # fail if no clan name supplied
+  die 'Internal error (is_clan_full() requires one argument)' if !$clan;
+
+  # if clan limit is not defined, always return true
+  return 1 if(!setting('app')->{'clanlimit'});
+
+  # otherwise get number of players and compare it to the clan limit
+  my $sth = database('clandb')->prepare(
+    'SELECT count(*) FROM clans LEFT JOIN players USING (clans_i)' .
+    'WHERE clans.name = ?'
+  );
+  my $r = $sth->execute($clan);
+  if(!$r) {
+    die sprintf('Failed to query database (%s)', $sth->errstr());
+  }
+  my ($members) = $sth->fetchrow_array();
+  return $members >= setting('app')->{'clanlimit'};
+}
+
+
+#=============================================================================
 # Removes a player from clan. This function also destroys the clan if there
 # are no remaining members and drops all outstanding invitation the player
 # has issued for the clan. This function does not check if the remaining
@@ -471,6 +500,22 @@ sub plr_invite
   my $plr_invitor = plr_info($name);
   if(!ref($plr_invitor)) { return $plr_invitor; }
 
+  #--- only admins can invite
+
+  if(!$plr_invitor->{'clan_admin'}) {
+    return "Only clan admins can invite players";
+  }
+
+  #--- are there available slots?
+
+  try {
+    if(!can_invite($plr_invitor->{'clan_name'})) {
+      return 'No more invitations can be given without overpromising';
+    }
+  } catch {
+    return "Failed to check available invitation slots ($@)";
+  }
+
   #--- get information about invitee, if invitee doesn't exist in clandb
   #--- but exists in dgamelaunch db, then create their account in clandb
 
@@ -485,9 +530,6 @@ sub plr_invite
 
   #--- sanity checks
 
-  if(!$plr_invitor->{'clan_admin'}) {
-    return "Only clan admins can invite players";
-  }
   if(
     exists $plr_invitee->{'clan_id'}
     && defined $plr_invitee->{'clan_id'}
@@ -861,6 +903,68 @@ sub clan_disband
 
 
 #=============================================================================
+# For given clan return number of outstanding invites for distinct players
+# (players can be invited multiple times into the same clan).
+#=============================================================================
+
+sub distinct_invites
+{
+  my $clan = shift;
+
+  die 'Internal error (can_invite() requires one argument' if !$clan;
+
+  my $query = <<EOHD;
+SELECT COUNT(DISTINCT p2.name) AS invitees
+  FROM invites
+  LEFT JOIN players p1 ON invitor = p1.players_i
+  LEFT JOIN players p2 ON invitee = p2.players_i
+  LEFT JOIN clans c USING ( clans_i)
+  WHERE c.name = ?;
+EOHD
+
+  my $sth = database('clandb')->prepare($query);
+  if(!ref($sth)) { die 'Failed to get database handle'; }
+  my $r = $sth->execute($clan);
+  if(!$r) {
+    die sprintf 'Failed to query database (%s)', $sth->errstr();
+  }
+  my ($num_invites) = $sth->fetchrow_array();
+
+  return $num_invites;
+}
+
+
+#=============================================================================
+# Return number of invites clan can give without overcommiting; if no clan
+# limits are set, return -1
+#=============================================================================
+
+sub can_invite
+{
+  my $clan = shift;
+
+  die 'Internal error (can_invite() requires one argument)' if !$clan;
+  return -1 if !setting('app')->{'clanlimit'};
+
+  my $query = 'SELECT count(*) FROM players JOIN clans USING (clans_i) ' .
+              'WHERE clans.name = ?';
+  my $sth = database('clandb')->prepare($query);
+  if(!ref($sth)) { die 'Failed to get query handle'; }
+  my $r = $sth->execute($clan);
+  if(!$r) {
+    die sprintf 'Failed to query database (%s)', $sth->errstr();
+  }
+  my ($clan_members) = $sth->fetchrow_array();
+
+  my $num_invites = distinct_invites($clan);
+  my $can_invite = setting('app')->{'clanlimit'} - $clan_members - $num_invites;
+  if($can_invite < 0) { $can_invite = 0; }
+
+  return $can_invite;
+}
+
+
+#=============================================================================
 # Get clan info listing for specified clan or all clans. The result is
 # returned as hashref of following structure:
 #
@@ -935,8 +1039,13 @@ sub clan_get_info
     );
   }
 
-  return \%re;
+  #--- flag to signal whether new invites can be issued for this clan
 
+  if($clan) {
+    try { $re{$clan}{'caninvite'} = can_invite($clan); } catch {}
+  }
+
+  return \%re;
 }
 
 
@@ -1049,6 +1158,8 @@ any [ 'get', 'post' ] => '/' => sub {
     $data{'logname'} = $logname;
     $data{'title'} = 'TNNT Clan Management';
     $data{'freeze'} = setting('app')->{'freeze'};
+    $data{'clanlimit'} = setting('app')->{'clanlimit'};
+
     return template 'index', \%data;
 
   #---------------------------------------------------------------------------
