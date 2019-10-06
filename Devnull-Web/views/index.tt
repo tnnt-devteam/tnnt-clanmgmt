@@ -1,5 +1,3 @@
-<h1 class="cmgmt">The November NetHack Tournament</h1>
-
   [%# ====================================================================
       === PLAYER INFORMATION =============================================
       ==================================================================== %]
@@ -184,15 +182,9 @@
 
     <p>
       <span class="infohlt">Hey! What is this?</span>
-      The November NetHack Tournament (TNNT) is an upcoming NetHack
-      tournament that replaces the discontinued /dev/null/nethack.
-    </p>
-
-    <p>
-      <span class="infohlt">Okay, but is this web page all?</span>
-      No. This page is put up in advance so that players can sign up
-      for the tournament and gather themselves into clans. Once the
-      tournament starts, the real scoreboard web will become available.
+      The November NetHack Tournament (TNNT) is an annual NetHack
+      tournament that replaces the discontinued /dev/null/nethack
+      tournament. It runs the entire month of November.
     </p>
 
     <p>
@@ -201,6 +193,13 @@
       credentials to log into The November NetHack Tournament clan management
       page. There you can do everything: start clans, join clans, manage your
       clan and more.
+    </p>
+
+    <p>
+      <span class="infohlt">Any other useful info?</span>
+      Clans are limited to twelve players per clan. On November 10th,
+      creating or joining clans is disabled. For more detailed information,
+      please see the <a href="../rules.html">rules</a> page.
     </p>
 
   </div>

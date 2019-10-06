@@ -37,6 +37,14 @@ div.idxleft {
   width: 30em;
 }
 
+div.idxleft a {
+  color: #59f;
+}
+
+div.idxleft a:hover {
+  color: #fd0;
+}
+
 div.idxright {
   margin: 2em;
   width: 30em;
@@ -93,7 +101,7 @@ this is the left side box containing explanatory info for the newly
 arrived users */
 
 div.info {
-  color: #888;
+  color: #f2f5ff;
   font-size: 100%;
   font-weight: 400;
   text-align: center;
@@ -105,7 +113,7 @@ div.info p {
 }
 
 span.infohlt {
-  color: #000;
+  color: #eb0;
   font-size: 133%;
   text-transform: uppercase;
   margin-right: 0.5em;
@@ -113,7 +121,7 @@ span.infohlt {
 }
 
 span.infosub1 {
-  color: #000;
+  color: #ccc;
 }
 
 /*--- error message on usuccessful login -----------------------------------*/
@@ -133,7 +141,7 @@ p.errexplain {
 }
 
 span.errmsg {
-  color: black;
+  color: red;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -182,7 +190,7 @@ this is the index page of the clan management app that is show when
 user is logged in */
 
 span.plrhilite {
-  color: black;
+  color: #eb0;
   text-transform: uppercase;
   margin: 0 0.2em;
 }
