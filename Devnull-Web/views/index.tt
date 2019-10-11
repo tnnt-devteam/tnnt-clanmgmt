@@ -139,6 +139,7 @@
 
   [%# === clan membership management ===================================== %]
 
+    [% IF clan %]
     <tr class="clanmgmt">
 
       <td>Your clan's members (apart from you)</td>
@@ -168,6 +169,7 @@
         [% END %]
       </td>
     </tr>
+    [% END %]
 
   </table>
 
