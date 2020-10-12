@@ -44,9 +44,9 @@ web server are provided. The main user-facing webserver needs to be
 configured as a reverse proxy for the application webserver. Example of
 Apache 2.4 config:
 
-    <Location /devnull/clanmgmt/>
+    <Location /tnnt/clanmgmt/>
     ProxyPass         http://localhost:5000/
-    ProxyPassReverse  /
+    ProxyPassReverse  http://localhost:5000/
     ProxyPreserveHost On
     </Location>
 

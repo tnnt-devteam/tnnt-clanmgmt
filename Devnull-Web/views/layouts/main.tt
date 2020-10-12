@@ -18,8 +18,10 @@
       <tr>
           <td class="leftmenu"></td>
           <td id="logo" rowspan="3">
+              <a href="https://www.hardfought.org/tnnt/index.html">
               <!-- <object style="display:inline" data="tnnt_square_logo.svg" type="image/svg+xml"></objec -->
               <img src="https://www.hardfought.org/tnnt/tnnt_square_logo.svg" width="100px" height="100px" />
+              </a>
           </td>
           <td class="rightmenu"></td>
       </tr>
@@ -33,7 +35,7 @@
           <td class="rightmenu">
               <a href="https://www.hardfought.org/tnnt/rules.html" class="menu [% IF page == 'rules' %] menusel [% END %]">RULES</a>
               <a href="https://www.hardfought.org/tnnt/about.html" class="menu [% IF page == 'about' %] menusel [% END %]">ABOUT</a>
-              <a href="https://i.kym-cdn.com/entries/icons/original/000/023/967/obiwan.jpg" class="menu [% IF page == 'archive' %] menusel [% END %]">ARCHIVE</a>
+              <a href="https://www.hardfought.org/tnnt/archives.html" class="menu [% IF page == 'archive' %] menusel [% END %]">ARCHIVE</a>
               <a href="/tnnt/clanmgmt" class="menu [% IF page == 'settings' %] menusel [% END %]">MY CLAN</a>
           </td>
       </tr>
