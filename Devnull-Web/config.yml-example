@@ -81,7 +81,12 @@ plugins:
 #
 # * app.freeze - block adding new players to clans and creating new clans
 # * app.clanlimit - maximum number of clan members; unlimited if not specified
-
+#
+# Setting 'freeze' to 1 allows for the creation of clans. Setting this value
+# to 0 still allows players to log into the clan management system, but clan
+# creation is no longer possible. The setting 'clanlimit' sets the maximum number
+# of players allowed per team. Any changes to either value requires the Starman
+# webserver script to be stopped and started again for the changes to apply.
 app:
   freeze: 0
   clanlimit: 12
