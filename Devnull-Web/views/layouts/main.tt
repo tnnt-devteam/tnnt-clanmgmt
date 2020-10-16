@@ -35,7 +35,7 @@
           <td class="rightmenu">
               <a href="https://www.hardfought.org/tnnt/rules.html" class="menu [% IF page == 'rules' %] menusel [% END %]">RULES</a>
               <a href="https://www.hardfought.org/tnnt/about.html" class="menu [% IF page == 'about' %] menusel [% END %]">ABOUT</a>
-              <a href="https://www.hardfought.org/tnnt/archives.html" class="menu [% IF page == 'archive' %] menusel [% END %]">ARCHIVE</a>
+              <a href="https://www.hardfought.org/tnnt/archives.html" class="menu [% IF page == 'archive' %] menusel [% END %]">ARCHIVES</a>
               <a href="/tnnt/clanmgmt" class="menu [% IF page == 'settings' %] menusel [% END %]">MY CLAN</a>
           </td>
       </tr>
