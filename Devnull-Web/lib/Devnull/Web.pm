@@ -1183,7 +1183,7 @@ any [ 'get', 'post' ] => '/' => sub {
 
 get '/logout' => sub {
   app->destroy_session();
-  redirect '/';
+  redirect '/tnnt/clanmgmt/';
 };
 
 #=============================================================================
