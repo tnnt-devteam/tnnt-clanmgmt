@@ -161,7 +161,7 @@ a.button {
   text-transform: uppercase;
   padding: 0.3em 0.5em;
   margin: 1em 0;
-  margin-right: 0.5em;
+  /*margin-right: 0.5em;*/
   background-color: rgb(240, 240, 240);
 }
 
@@ -227,6 +227,9 @@ tr.clanmember td {
 /* invite search result element */
 
 div.invsrc {
+  color: #000;
+  font-family: inherit;
+  font-weight: bold;
   display: inline-block;
   text-align: center;
   overflow: hidden;
