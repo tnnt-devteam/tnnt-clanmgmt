@@ -1197,7 +1197,7 @@ get '/leave_clan' => sub {
     plr_leave_clan($name);
     # FIXME error not handled
   }
-  redirect '/';
+  redirect '/tnnt/clanmgmt/';
 };
 
 
@@ -1214,7 +1214,7 @@ any '/create_clan' => sub {
   #--- get login name (if logged in)
 
   my $name = session('logname');
-  if(!$name) { redirect '/'; }
+  if(!$name) { redirect '/tnnt/clanmgmt/'; }
   $data->{'logname'} = $name if $name;
 
   #--- if this is POST request, process the submitted data
@@ -1244,7 +1244,7 @@ any '/create_clan' => sub {
   if($data->{'errmsg'} || request->is_get) {
     return template 'clan_create', $data;
   } else {
-    redirect '/';
+    redirect '/tnnt/clanmgmt/';
   }
 
 };
@@ -1264,7 +1264,7 @@ any '/invite' => sub {
 
   my $name = session('logname');
   if(!$name) {
-    redirect '/';
+    redirect '/tnnt/clanmgmt/';
   }
 
   $data->{'logname'} = $name;
@@ -1317,7 +1317,7 @@ get '/invite/:invitee' => sub {
   if(!ref($r)) {
     return $r;
   } else {
-    redirect '/';
+    redirect '/tnnt/clanmgmt/';
   }
 };
 
@@ -1339,7 +1339,7 @@ get '/revoke/:player' => sub {
   my $r = plr_revoke_invitations($name, $invitee);
   if(!ref($r)) { return $r; }
 
-  redirect '/';
+  redirect '/tnnt/clanmgmt/';
 
 };
 
@@ -1355,7 +1355,7 @@ get '/revoke' => sub {
   my $r = plr_revoke_invitations($name);
   if(!ref($r)) { return $r; }
 
-  redirect '/';
+  redirect '/tnnt/clanmgmt/';
 
 };
 
@@ -1377,7 +1377,7 @@ get '/decline/:player' => sub {
   my $r = plr_decline_invitation($name, $invitor);
   if(!ref($r)) { return $r; }
 
-  redirect '/';
+  redirect '/tnnt/clanmgmt/';
 
 };
 
@@ -1394,7 +1394,7 @@ get '/decline' => sub {
   my $r = plr_decline_invitation($name);
   if(!ref($r)) { return $r; }
 
-  redirect '/';
+  redirect '/tnnt/clanmgmt/';
 
 };
 
@@ -1416,7 +1416,7 @@ get '/accept/:player' => sub {
   my $r = plr_accept_invitation($name, $invitor);
   if(!ref($r)) { return $r; }
 
-  redirect '/';
+  redirect '/tnnt/clanmgmt/';
 };
 
 
@@ -1479,7 +1479,7 @@ get '/make_admin/:player' => sub {
 
   #--- finish
 
-  redirect '/';
+  redirect '/tnnt/clanmgmt/';
 
 };
 
@@ -1551,7 +1551,7 @@ get '/resign_admin' => sub {
   #--- finish successfully
 
   database('clandb')->commit();
-  redirect '/';
+  redirect '/tnnt/clanmgmt/';
 
 };
 
@@ -1709,7 +1709,7 @@ get '/kick/:player' => sub {
 
   #--- finish
 
-  redirect '/';
+  redirect '/tnnt/clanmgmt/';
 };
 
 
@@ -1742,7 +1742,7 @@ get '/clan_revoke' => sub {
 
   #--- finish
 
-  redirect '/';
+  redirect '/tnnt/clanmgmt/';
 
 };
 
@@ -1775,7 +1775,7 @@ get '/clan_revoke/:player' => sub {
 
   #--- finish
 
-  redirect '/';
+  redirect '/tnnt/clanmgmt/';
 
 };
 
@@ -1800,7 +1800,7 @@ get '/disband' => sub {
 
   #--- finish
 
-  redirect '/';
+  redirect '/tnnt/clanmgmt/';
 };
 
 
